@@ -10,12 +10,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("ProjetoFBD")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Formula0-DataBase")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ccc59876d48e47c68c5a21975b14ebe333cef8b")]
-[assembly: System.Reflection.AssemblyProductAttribute("ProjetoFBD")]
-[assembly: System.Reflection.AssemblyTitleAttribute("ProjetoFBD")]
+[assembly: System.Reflection.AssemblyProductAttribute("Formula0-DataBase")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Formula0-DataBase")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]

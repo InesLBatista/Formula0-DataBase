@@ -1,0 +1,5 @@
+C:\Users\maria\Documents\GitHub\Formula0-DataBase\obj\Debug\net10.0-windows\Formula0-DataBase.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\maria\Documents\GitHub\Formula0-DataBase\obj\Debug\net10.0-windows\Formula0-DataBase.AssemblyInfoInputs.cache
+C:\Users\maria\Documents\GitHub\Formula0-DataBase\obj\Debug\net10.0-windows\Formula0-DataBase.AssemblyInfo.cs
+C:\Users\maria\Documents\GitHub\Formula0-DataBase\obj\Debug\net10.0-windows\Formula0-DataBase.csproj.CoreCompileInputs.cache
+C:\Users\maria\Documents\GitHub\Formula0-DataBase\obj\Debug\net10.0-windows\Formula0-DataBase.sourcelink.json

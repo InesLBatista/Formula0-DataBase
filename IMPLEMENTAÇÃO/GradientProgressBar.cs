@@ -17,8 +17,9 @@ public class GradientProgressBar : ProgressBar
 
     [Category("Appearance")]
     [Description("Cor inicial do degradê.")]
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)] 
     [TypeConverter(typeof(System.Drawing.ColorConverter))]
+
     public Color StartColor
     {
         get => startColor;
@@ -59,26 +60,26 @@ public class GradientProgressBar : ProgressBar
 
         Rectangle rect = this.ClientRectangle;
 
-        // Fundo arredondado
         using (GraphicsPath backgroundPath = GetRoundRectPath(rect, borderRadius))
-        using (SolidBrush backgroundBrush = new SolidBrush(this.BackColor))
+
+        using (SolidBrush backgroundBrush = new SolidBrush(this.BackColor)) 
         {
             e.Graphics.FillPath(backgroundBrush, backgroundPath);
         }
 
-        // Parte preenchida
         rect.Width = (int)(rect.Width * ((double)this.Value / this.Maximum));
         if (rect.Width > 0)
         {
-            using (GraphicsPath fillPath = GetRoundRectPath(rect, borderRadius))
-            using (LinearGradientBrush brush = new LinearGradientBrush(
-                rect, StartColor, EndColor, LinearGradientMode.Horizontal))
-            {
-                e.Graphics.FillPath(brush, fillPath);
-            }
+        Rectangle fillBounds = this.ClientRectangle; 
+    
+        using (GraphicsPath fillPath = GetRoundRectPath(rect, borderRadius))
+        using (LinearGradientBrush brush = new LinearGradientBrush(
+            fillBounds, StartColor, EndColor, LinearGradientMode.Horizontal)) 
+        {
+            e.Graphics.FillPath(brush, fillPath);
         }
+    }
 
-        // **Borda removida** - não desenhamos mais nada
     }
 
     private GraphicsPath GetRoundRectPath(Rectangle rect, int radius)
