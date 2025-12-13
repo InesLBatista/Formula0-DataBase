@@ -11,6 +11,11 @@
         public partial class HomePage : Form
         {
             private string userRole;
+            private Panel pnlContent = null!;
+            private Panel pnlTopBar = null!;
+            private Button btnBack = null!;
+            private Label lblCurrentView = null!;
+            private Stack<Control> navigationStack;
             
             // As declarações dos Painéis foram movidas para o Designer.cs
             // private Panel pnlGrandPrix;
@@ -26,13 +31,20 @@
                 // CRÍTICO: InitializeComponent() deve ser a primeira chamada
                 InitializeComponent(); 
                 
+                // Initialize navigation stack
+                navigationStack = new Stack<Control>();
+                
+                // Initialize global navigation helper
+                NavigationHelper.Initialize(this);
+                
                 // 1. Configurações Iniciais e Background
                 SetupBackgroundImage();
                 this.userRole = role; 
                 
                 this.Text = "Home Page - " + role;
+                this.WindowState = FormWindowState.Maximized;
                 
-                // 2. Criação do Layout
+                // 2. Criação do Layout com Content Panel
                 SetupLayout(); 
             }
 
@@ -115,6 +127,60 @@
                 this.Controls.Add(pnlMainMenu);
                 pnlMainMenu.BringToFront();
                 
+                // --- 1.5 Create Top Navigation Bar (Below Main Menu) ---
+                pnlTopBar = new Panel
+                {
+                    Size = new Size(this.ClientSize.Width, 50),
+                    Location = new Point(0, 70),
+                    BackColor = Color.FromArgb(200, 30, 30, 30),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                    Name = "pnlTopBar",
+                    Visible = false // Hidden until content is loaded
+                };
+                this.Controls.Add(pnlTopBar);
+                
+                btnBack = new Button
+                {
+                    Text = "← BACK",
+                    Font = new Font("Arial", 12, FontStyle.Bold),
+                    BackColor = Color.FromArgb(220, 20, 20),
+                    ForeColor = Color.White,
+                    Size = new Size(120, 35),
+                    Location = new Point(15, 7),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand
+                };
+                btnBack.FlatAppearance.BorderSize = 0;
+                btnBack.FlatAppearance.MouseOverBackColor = Color.FromArgb(240, 30, 30);
+                btnBack.Click += BtnBack_Click;
+                pnlTopBar.Controls.Add(btnBack);
+                
+                lblCurrentView = new Label
+                {
+                    Text = "",
+                    Font = new Font("Arial", 14, FontStyle.Bold),
+                    ForeColor = Color.White,
+                    AutoSize = false,
+                    Size = new Size(this.ClientSize.Width - 300, 35),
+                    Location = new Point(150, 7),
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    BackColor = Color.Transparent,
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+                };
+                pnlTopBar.Controls.Add(lblCurrentView);
+                
+                // --- 1.6 Create Content Panel (Full Screen Below Navigation) ---
+                pnlContent = new Panel
+                {
+                    Location = new Point(0, 120), // Below menu + nav bar
+                    Size = new Size(this.ClientSize.Width, this.ClientSize.Height - 120),
+                    BackColor = Color.Transparent,
+                    Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                    Name = "pnlContent"
+                };
+                this.Controls.Add(pnlContent);
+                pnlContent.BringToFront();
+                
                 // --- 2. Criação dos Botões do Cabeçalho (Estilo F1 Moderno) ---
                 
                 Font menuFont = new Font("Arial", 14, FontStyle.Bold);
@@ -146,6 +212,14 @@
                 
                 AddDropdownItem(pnlGrid, "Drivers", 0);
                 AddDropdownItem(pnlGrid, "Teams", 1);
+                
+                // Team Members - Only for Staff
+                if (userRole == "Staff")
+                {
+                    AddDropdownItem(pnlGrid, "Team Members", 2);
+                    // Adjust panel height for 3 items
+                    pnlGrid.Size = new Size(180, 150);
+                }
 
                 // Adicionar os painéis ao formulário (só se não os adicionou no Designer)
                 // Se o Designer já os adicionou, remova as próximas 3 linhas
@@ -177,7 +251,7 @@
                     BackColor = Color.FromArgb(150, 150, 150),
                     ForeColor = Color.White,
                     Size = new Size(120, 40),
-                    Location = new Point(this.ClientSize.Width - 140, this.ClientSize.Height - 60),
+                    Location = new Point(this.ClientSize.Width - 270, this.ClientSize.Height - 60),
                     FlatStyle = FlatStyle.Flat,
                     Cursor = Cursors.Hand,
                     Anchor = AnchorStyles.Bottom | AnchorStyles.Right
@@ -187,6 +261,24 @@
                 btnLogout.Click += new EventHandler(this.btnLogout_Click);
                 this.Controls.Add(btnLogout);
                 btnLogout.BringToFront();
+                
+                Button btnQuit = new Button
+                {
+                    Text = "QUIT",
+                    Font = new Font("Arial", 11, FontStyle.Bold),
+                    BackColor = Color.FromArgb(220, 20, 20),
+                    ForeColor = Color.White,
+                    Size = new Size(120, 40),
+                    Location = new Point(this.ClientSize.Width - 140, this.ClientSize.Height - 60),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand,
+                    Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+                };
+                btnQuit.FlatAppearance.BorderSize = 0;
+                btnQuit.FlatAppearance.MouseOverBackColor = Color.FromArgb(240, 30, 30);
+                btnQuit.Click += new EventHandler(this.btnQuit_Click);
+                this.Controls.Add(btnQuit);
+                btnQuit.BringToFront();
             }
 
             // -------------------------------------------------------------------------
@@ -214,9 +306,28 @@
 
             private void btnLogout_Click(object? sender, EventArgs e)
             {
-                this.Close();
+                this.Hide();
                 LoginForm loginForm = new LoginForm();
+                loginForm.FormClosed += (s, args) =>
+                {
+                    // Se o LoginForm fechar, fecha também a HomePage
+                    this.Close();
+                };
                 loginForm.Show();
+            }
+
+            private void btnQuit_Click(object? sender, EventArgs e)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Are you sure you want to quit the application?",
+                    "Quit Application",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    Application.Exit();
+                }
             }
 
             private Button CreateMenuHeaderButton(string text, Font font, Color backColor, Color foreColor, Point location)
@@ -289,7 +400,7 @@
                 btnItem.MouseLeave += (s, e) => btnItem.BackColor = Color.White;
 
                 parentPanel.Controls.Add(btnItem);
-        if (parentPanel == pnlGrandPrix && text == "GP") // Assumi que "Races" é o seu GP no código
+        if (parentPanel == pnlGrandPrix && text == "GP")
     {
         btnItem.Click += (s, e) => OpenGPForm();
     }
@@ -297,9 +408,29 @@
     {
         btnItem.Click += (s, e) => OpenCircuitForm(); 
     }
-    else if (parentPanel == pnlSeasons && text == "All Seasons") // <-- NOVO CÓDIGO AQUI
+    else if (parentPanel == pnlSeasons && text == "Team Standings")
+    {
+        btnItem.Click += (s, e) => OpenTeamStandingsForm();
+    }
+    else if (parentPanel == pnlSeasons && text == "Driver Standings")
+    {
+        btnItem.Click += (s, e) => OpenDriverStandingsForm();
+    }
+    else if (parentPanel == pnlSeasons && text == "All Seasons")
     {
         btnItem.Click += (s, e) => OpenSeasonForm();
+    }
+    else if (parentPanel == pnlGrid && text == "Drivers")
+    {
+        btnItem.Click += (s, e) => OpenDriverForm();
+    }
+    else if (parentPanel == pnlGrid && text == "Teams")
+    {
+        btnItem.Click += (s, e) => OpenTeamForm();
+    }
+    else if (parentPanel == pnlGrid && text == "Team Members")
+    {
+        btnItem.Click += (s, e) => OpenTeamMemberForm();
     }
 
             }
@@ -319,40 +450,151 @@
 
     private void OpenGPForm()
     {
-        // 1. Esconder o painel dropdown após a seleção
         pnlGrandPrix.Visible = false;
-        
-        // 2. Abre o formulário da Lista de Grandes Prémios
-        // Passamos o papel do utilizador para que o GrandePremioForm saiba quem pode editar
         GPForm gpForm = new GPForm(this.userRole);
-        
-        // Usa ShowDialog() para que o utilizador feche a lista antes de interagir novamente com a HomePage/Menu
-        gpForm.ShowDialog(); 
+        LoadFormIntoContent(gpForm, "GRAND PRIX");
     }
 
     private void OpenCircuitForm()
     {
-        // 1. Esconder o painel dropdown após a seleção
         pnlGrandPrix.Visible = false;
-        
-        // 2. Abre o formulário da Lista de Circuitos
         CircuitForm circuitForm = new CircuitForm(this.userRole);
-        
-        // Usa ShowDialog() para que o utilizador feche a lista antes de interagir novamente com a HomePage/Menu
-        circuitForm.ShowDialog();
+        LoadFormIntoContent(circuitForm, "CIRCUITS");
     }
+    
     private void OpenSeasonForm()
     {
-        //1. Esconder o painel dropdown após a seleção
-        pnlSeasons.Visible = false; // Tem que esconder o painel correto
-        
-        // 2. Abre o formulário da Lista de Temporadas
-        // Assumimos que a classe SeasonForm está disponível no namespace ProjetoFBD
+        pnlSeasons.Visible = false;
         SeasonForm seasonForm = new SeasonForm(this.userRole);
-        
-        // Usa ShowDialog() para que o utilizador feche a lista antes de interagir novamente com a HomePage/Menu
-        seasonForm.ShowDialog();
+        LoadFormIntoContent(seasonForm, "SEASONS");
     }
+    
+    private void OpenTeamStandingsForm()
+    {
+        pnlSeasons.Visible = false;
+        TeamStandingsForm standingsForm = new TeamStandingsForm(this.userRole);
+        LoadFormIntoContent(standingsForm, "TEAM STANDINGS");
+    }
+    
+    private void OpenDriverStandingsForm()
+    {
+        pnlSeasons.Visible = false;
+        DriverStandingsForm standingsForm = new DriverStandingsForm(this.userRole);
+        LoadFormIntoContent(standingsForm, "DRIVER STANDINGS");
+    }
+    
+    private void OpenDriverForm()
+    {
+        pnlGrid.Visible = false;
+        DriverForm driverForm = new DriverForm(this.userRole);
+        LoadFormIntoContent(driverForm, "DRIVERS");
+    }
+    
+    private void OpenTeamForm()
+    {
+        pnlGrid.Visible = false;
+        TeamForm teamForm = new TeamForm(this.userRole);
+        LoadFormIntoContent(teamForm, "TEAMS");
+    }
+    
+    private void OpenTeamMemberForm()
+    {
+        pnlGrid.Visible = false;
+        TeamMemberForm memberForm = new TeamMemberForm(this.userRole);
+        LoadFormIntoContent(memberForm, "TEAM MEMBERS");
+    }
+    
+    // Single-window navigation system
+    private void LoadFormIntoContent(Form form, string title)
+    {
+        // Save current content to history if exists
+        if (pnlContent.Controls.Count > 0 && pnlContent.Controls[0] != null)
+        {
+            Control? currentControl = pnlContent.Controls[0];
+            if (currentControl != null)
+            {
+                navigationStack.Push(currentControl);
+            }
+        }
+        
+        // Clear content panel
+        pnlContent.Controls.Clear();
+        
+        // Configure form as control
+        form.TopLevel = false;
+        form.FormBorderStyle = FormBorderStyle.None;
+        form.Dock = DockStyle.Fill;
+        
+        // Add to content panel
+        pnlContent.Controls.Add(form);
+        form.Show();
+        
+        // Update navigation UI
+        lblCurrentView.Text = title;
+        pnlTopBar.Visible = true;
+        pnlTopBar.BringToFront();
+    }
+    
+    private void BtnBack_Click(object? sender, EventArgs e)
+    {
+        if (navigationStack.Count > 0)
+        {
+            // Get previous content
+            Control previousControl = navigationStack.Pop();
+            
+            // Clear current content
+            if (pnlContent.Controls.Count > 0)
+            {
+                Control currentControl = pnlContent.Controls[0];
+                if (currentControl is Form currentForm)
+                {
+                    currentForm.Close();
+                }
+                pnlContent.Controls.Clear();
+            }
+            
+            // Restore previous content
+            pnlContent.Controls.Add(previousControl);
+            
+            // Update title based on control type
+            if (previousControl is GPForm)
+                lblCurrentView.Text = "GRAND PRIX";
+            else if (previousControl is CircuitForm)
+                lblCurrentView.Text = "CIRCUITS";
+            else if (previousControl is SeasonForm)
+                lblCurrentView.Text = "SEASONS";
+            else if (previousControl is TeamStandingsForm)
+                lblCurrentView.Text = "TEAM STANDINGS";
+            else if (previousControl is DriverStandingsForm)
+                lblCurrentView.Text = "DRIVER STANDINGS";
+            else if (previousControl is DriverForm)
+                lblCurrentView.Text = "DRIVERS";
+            else if (previousControl is TeamForm)
+                lblCurrentView.Text = "TEAMS";
+            else if (previousControl is TeamMemberForm)
+                lblCurrentView.Text = "TEAM MEMBERS";
+            else if (previousControl is ResultsForm)
+                lblCurrentView.Text = "RESULTS";
+        }
+        else
+        {
+            // No more history - go back to home
+            pnlContent.Controls.Clear();
+            pnlTopBar.Visible = false;
+        }
+    }
+    
+    // Public methods for NavigationHelper to call
+    public void NavigateToForm(Form form, string title)
+    {
+        LoadFormIntoContent(form, title);
+    }
+    
+    public void NavigateBack()
+    {
+        BtnBack_Click(null, EventArgs.Empty);
+    }
+
 
     // Nota: Você pode precisar de ajustar os nomes dos seus métodos (OpenGPForm, OpenCircuitForm) 
     // para corresponder exatamente aos nomes que está a usar no seu projeto.

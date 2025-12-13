@@ -5,6 +5,7 @@ using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.VisualBasic;
 
 namespace ProjetoFBD
 {
@@ -289,12 +290,14 @@ namespace ProjetoFBD
         {
             if (gpTable != null && userRole == "Staff")
             {
-                using (var inputForm = new InputDialog("Add New Grand Prix", "Enter the Grand Prix name:"))
+                string gpName = Interaction.InputBox(
+                    "Enter the Grand Prix name:",
+                    "Add New Grand Prix",
+                    "");
+                
+                if (!string.IsNullOrWhiteSpace(gpName))
                 {
-                    if (inputForm.ShowDialog() == DialogResult.OK && 
-                        !string.IsNullOrWhiteSpace(inputForm.InputValue))
-                    {
-                        string gpName = inputForm.InputValue.Trim();
+                    gpName = gpName.Trim();
                         
                         // Validação adicional: não permitir apenas números
                         if (gpName.All(char.IsDigit))
@@ -346,7 +349,6 @@ namespace ProjetoFBD
                                 "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
-                }
             }
         }
 
@@ -430,10 +432,7 @@ namespace ProjetoFBD
             try
             {
                 SessionForm sessionForm = new SessionForm(this.userRole, selectedGP);
-                sessionForm.ShowDialog();
-                
-                // Atualizar a lista de GPs após fechar o form de sessões (caso tenha mudanças)
-                LoadGPData();
+                NavigationHelper.NavigateTo(sessionForm, "SESSIONS - " + selectedGP);
             }
             catch (Exception ex)
             {

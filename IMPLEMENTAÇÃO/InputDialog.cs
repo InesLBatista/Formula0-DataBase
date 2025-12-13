@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 public class InputDialog : Form
 {
     private TextBox txtInput = null!;
@@ -5,17 +7,18 @@ public class InputDialog : Form
     private Button btnCancel = null!;
     private Label lblPrompt = null!;
     
-    public string? InputValue { get; private set; } // Tornar nullable
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public string? InputValue { get; set; }
     
-    public InputDialog(string title, string prompt)
+    public InputDialog(string title, string prompt, string initialValue = "")
     {
-        InitializeComponents(title, prompt);
+        InitializeComponents(title, prompt, initialValue);
     }
     
-    private void InitializeComponents(string title, string prompt)
+    private void InitializeComponents(string title, string prompt, string initialValue)
     {
         this.Text = title;
-        this.Size = new Size(400, 180);
+        this.Size = new Size(500, 250);
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -25,21 +28,23 @@ public class InputDialog : Form
         {
             Text = prompt,
             Location = new Point(20, 20),
-            Size = new Size(350, 40),
-            Font = new Font("Arial", 10)
+            Size = new Size(450, 80),
+            Font = new Font("Arial", 10),
+            AutoSize = false
         };
         
         txtInput = new TextBox
         {
-            Location = new Point(20, 70),
-            Size = new Size(350, 30),
-            Font = new Font("Arial", 10)
+            Location = new Point(20, 110),
+            Size = new Size(450, 30),
+            Font = new Font("Arial", 10),
+            Text = initialValue
         };
         
         btnOk = new Button
         {
             Text = "OK",
-            Location = new Point(200, 110),
+            Location = new Point(300, 160),
             Size = new Size(80, 30),
             DialogResult = DialogResult.OK
         };
@@ -47,7 +52,7 @@ public class InputDialog : Form
         btnCancel = new Button
         {
             Text = "Cancel",
-            Location = new Point(290, 110),
+            Location = new Point(390, 160),
             Size = new Size(80, 30),
             DialogResult = DialogResult.Cancel
         };
@@ -61,5 +66,8 @@ public class InputDialog : Form
         this.Controls.Add(txtInput);
         this.Controls.Add(btnOk);
         this.Controls.Add(btnCancel);
+        
+        // Focus and select text for easy editing
+        this.Shown += (s, e) => { txtInput.Focus(); txtInput.SelectAll(); };
     }
 }

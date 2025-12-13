@@ -71,27 +71,22 @@ namespace ProjetoFBD
             Button btnViewDetails = CreateActionButton("View GP Details", new Point(0, 5));
             btnViewDetails.Click += btnViewDetails_Click;
             
-            // Botão para fechar
-            Button btnClose = CreateActionButton("Close", new Point(140, 5));
-            btnClose.Click += (s, e) => this.Close();
-            
             pnlActions.Controls.Add(btnViewDetails);
-            pnlActions.Controls.Add(btnClose);
             
             // Para Staff, adicionar botões de administração
             if (this.userRole == "Staff")
             {
-                Button btnAddGP = CreateActionButton("Add GP", new Point(280, 5));
+                Button btnAddGP = CreateActionButton("Add GP", new Point(140, 5));
                 btnAddGP.Click += btnAddGP_Click;
                 pnlActions.Controls.Add(btnAddGP);
                 
                 // Botão para editar GP selecionado
-                Button btnEditGP = CreateActionButton("Edit GP", new Point(420, 5));
+                Button btnEditGP = CreateActionButton("Edit GP", new Point(280, 5));
                 btnEditGP.Click += btnEditGP_Click;
                 pnlActions.Controls.Add(btnEditGP);
                 
                 // Aumentar tamanho do painel
-                pnlActions.Size = new Size(560, 50);
+                pnlActions.Size = new Size(420, 50);
             }
         }
         
@@ -193,28 +188,43 @@ namespace ProjetoFBD
     }
     
     // Configurar o DataGridView
-    if (dgvGPs != null)
+    if (dgvGPs != null && gpTable != null && gpTable.Rows.Count > 0)
     {
         dgvGPs.AutoGenerateColumns = true;
         dgvGPs.DataSource = gpTable;
         
+        // Wait for columns to be generated
+        dgvGPs.Refresh();
+        Application.DoEvents();
+        
         // Manter apenas a coluna de nome e ajustar cabeçalho
-        foreach (DataGridViewColumn column in dgvGPs.Columns)
+        if (dgvGPs.Columns.Count > 0)
         {
-            if (column.Name == "Grand Prix Name" || column.Name == "GP_Name" || column.Name == "NomeGP")
+            foreach (DataGridViewColumn column in dgvGPs.Columns)
             {
-                column.HeaderText = "Grand Prix Name";
-                column.Width = 400;
-            }
-            else
-            {
-                column.Visible = false;
+                if (column != null)
+                {
+                    if (column.Name == "Grand Prix Name" || column.Name == "GP_Name" || column.Name == "NomeGP")
+                    {
+                        column.HeaderText = "Grand Prix Name";
+                        column.Width = 400;
+                    }
+                    else
+                    {
+                        column.Visible = false;
+                    }
+                }
             }
         }
     }
+    else if (dgvGPs != null)
+    {
+        MessageBox.Show($"No Grand Prix events found for {selectedYear} season.\n\nPlease add Grand Prix events first.",
+            "No Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
     
     // Mostrar contagem de GPs
-    if (dgvGPs != null && gpTable.Rows.Count > 0)
+    if (dgvGPs != null && gpTable != null && gpTable.Rows.Count > 0)
     {
         // Remover label anterior se existir
         foreach (Control control in this.Controls)
@@ -236,7 +246,7 @@ namespace ProjetoFBD
         };
         this.Controls.Add(lblCount);
     }
-    else if (gpTable.Rows.Count == 0)
+    else if (gpTable != null && gpTable.Rows.Count == 0)
     {
         MessageBox.Show($"No Grand Prix events found for {selectedYear}.", 
             "No Data", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -260,24 +270,18 @@ namespace ProjetoFBD
     
     DataGridViewRow selectedRow = dgvGPs.SelectedRows[0];
     
-    // Usar operador null-conditional e null-coalescing para evitar referências nulas
-    string gpName = selectedRow.Cells["Grand Prix Name"]?.Value?.ToString() ?? "N/A";
-    string circuitName = selectedRow.Cells["Circuit"]?.Value?.ToString() ?? "N/A";
+    // Get GP name from the only column we have
+    string? gpName = selectedRow.Cells["Grand Prix Name"]?.Value?.ToString();
     
-    // Para a data, tratar especialmente
-    object? dateValue = selectedRow.Cells["Race Date"]?.Value;
-    string raceDate = dateValue is DateTime dateTimeValue ? 
-        dateTimeValue.ToString("dd/MM/yyyy") : 
-        (dateValue?.ToString() ?? "N/A");
+    if (string.IsNullOrEmpty(gpName))
+    {
+        MessageBox.Show("Invalid Grand Prix selection.", "Error", 
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return;
+    }
     
-    // Obter o ano da temporada da linha selecionada
-    object? yearValue = selectedRow.Cells["Season Year"]?.Value;
-    int seasonYear = yearValue != null && int.TryParse(yearValue.ToString(), out int year) ? 
-        year : selectedYear;
-    
-    // Aqui você pode abrir um formulário para mostrar os detalhes do GP
-    // Passando o nome do GP, circuito e data para identificar unicamente
-    ShowGPDetails(gpName, circuitName, raceDate, seasonYear);
+    // Open SessionForm for this GP
+    ShowGPDetails(gpName);
 }
 
         private void btnAddGP_Click(object? sender, EventArgs e)
@@ -357,13 +361,13 @@ namespace ProjetoFBD
             // 3. Passar o ID e os dados atuais
         }
 
-        private void ShowGPDetails(string gpName, string circuitName, string raceDate, int seasonYear)
+        private void ShowGPDetails(string gpName)
         {
             try
             {
                 // Abrir o SessionForm para mostrar as sessões deste GP
                 SessionForm sessionForm = new SessionForm(this.userRole, gpName);
-                sessionForm.ShowDialog();
+                NavigationHelper.NavigateTo(sessionForm, "SESSIONS - " + gpName);
             }
             catch (Exception ex)
             {

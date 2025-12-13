@@ -594,12 +594,7 @@ namespace ProjetoFBD
             try
             {
                 GPListForm gpList = new GPListForm(this.userRole, year);
-                gpList.FormClosed += (s, args) =>
-                {
-                    // Quando o GPListForm é fechado, atualizar o contador de corridas
-                    btnRefresh_Click(null, EventArgs.Empty);
-                };
-                gpList.ShowDialog();
+                NavigationHelper.NavigateTo(gpList, "GP LIST - " + year);
             }
             catch (Exception ex)
             {
