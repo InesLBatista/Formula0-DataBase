@@ -71,19 +71,23 @@ namespace ProjetoFBD
             Button btnDelete = CreateActionButton("Delete", new Point(280, 5));
             Button btnRefresh = CreateActionButton("Refresh", new Point(400, 5));
             Button btnViewResults = CreateActionButton("View Results", new Point(520, 5), Color.FromArgb(0, 102, 204));
+            Button btnAddPenalty = CreateActionButton("Add Penalty", new Point(660, 5), Color.FromArgb(255, 140, 0));
+            
             btnSave.Click += btnSave_Click;
             btnAdd.Click += btnAdd_Click;
             btnDelete.Click += btnDelete_Click;
             btnRefresh.Click += btnRefresh_Click;
             btnViewResults.Click += btnViewResults_Click;
+            btnAddPenalty.Click += btnAddPenalty_Click;
 
             pnlStaffActions.Controls.Add(btnSave);
             pnlStaffActions.Controls.Add(btnAdd);
             pnlStaffActions.Controls.Add(btnDelete);
             pnlStaffActions.Controls.Add(btnRefresh);
             pnlStaffActions.Controls.Add(btnViewResults);
+            pnlStaffActions.Controls.Add(btnAddPenalty);
             
-            pnlStaffActions.Size = new Size(780, 50);
+            pnlStaffActions.Size = new Size(920, 50);
 
             // Role-Based Access Control
             if (this.userRole == "Staff")
@@ -459,6 +463,372 @@ namespace ProjetoFBD
                 
                 // Focus and select text for easy editing
                 this.Shown += (s, e) => { textBox.Focus(); textBox.SelectAll(); };
+            }
+        }
+
+        private void btnAddPenalty_Click(object? sender, EventArgs e)
+        {
+            if (dgvSessions == null || !IsRowSelected(dgvSessions, "session"))
+                return;
+
+            var selectedRow = dgvSessions.SelectedRows[0];
+            string? sessionName = selectedRow.Cells["NomeSessão"].Value?.ToString();
+
+            if (string.IsNullOrEmpty(sessionName))
+            {
+                ShowWarning("Please select a valid session.");
+                return;
+            }
+
+            // Open Add Penalty dialog
+            using (var dialog = new AddPenaltyDialog(gpName, sessionName))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using (SqlConnection conn = new SqlConnection(DbConfig.ConnectionString))
+                        {
+                            conn.Open();
+                            string insertQuery = @"
+                                INSERT INTO Penalizações (TipoPenalização, Motivo, NomeSessão, NomeGP, ID_Piloto, ID_Resultados)
+                                VALUES (@Tipo, @Motivo, @Session, @GP, @Piloto, @Resultado)";
+                            
+                            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+                            cmd.Parameters.AddWithValue("@Tipo", dialog.PenaltyType);
+                            cmd.Parameters.AddWithValue("@Motivo", dialog.Reason);
+                            cmd.Parameters.AddWithValue("@Session", sessionName);
+                            cmd.Parameters.AddWithValue("@GP", gpName);
+                            cmd.Parameters.AddWithValue("@Piloto", dialog.DriverId.HasValue ? (object)dialog.DriverId.Value : DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Resultado", dialog.ResultId.HasValue ? (object)dialog.ResultId.Value : DBNull.Value);
+                            
+                            cmd.ExecuteNonQuery();
+                            ShowSuccess($"Penalty added successfully!\n\n{dialog.PenaltyType} - {dialog.Reason}");
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        HandleSqlException(sqlEx, "adding penalty");
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowError($"Error adding penalty: {ex.Message}");
+                    }
+                }
+            }
+        }
+    }
+
+    // Penalty dialog class
+    public class AddPenaltyDialog : Form
+    {
+        private ComboBox? cmbPenaltyType;
+        private TextBox? txtReason;
+        private ComboBox? cmbDriver;
+        private ComboBox? cmbResult;
+        
+        public string PenaltyType { get; private set; } = "";
+        public string Reason { get; private set; } = "";
+        public int? DriverId { get; private set; }
+        public int? ResultId { get; private set; }
+        
+        private string gpName;
+        private string sessionName;
+
+        public AddPenaltyDialog(string gpName, string sessionName)
+        {
+            this.gpName = gpName;
+            this.sessionName = sessionName;
+            
+            InitializeDialog();
+            LoadDrivers();
+            LoadResults();
+        }
+
+        private void InitializeDialog()
+        {
+            this.Text = $"Add Penalty - {sessionName}";
+            this.Size = new Size(500, 400);
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+
+            // Title
+            Label lblTitle = new Label
+            {
+                Text = $"Add Penalty - {gpName} - {sessionName}",
+                Location = new Point(20, 20),
+                Size = new Size(450, 25),
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(220, 20, 20)
+            };
+            this.Controls.Add(lblTitle);
+
+            // Penalty Type
+            Label lblType = new Label
+            {
+                Text = "Penalty Type:",
+                Location = new Point(20, 60),
+                Size = new Size(120, 20)
+            };
+            this.Controls.Add(lblType);
+
+            cmbPenaltyType = new ComboBox
+            {
+                Location = new Point(150, 57),
+                Size = new Size(310, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            cmbPenaltyType.Items.AddRange(new string[]
+            {
+                "Drive-through penalty",
+                "Grid penalties",
+                "Time penalties",
+                "Disqualification",
+                "Speeding in the pit lane",
+                "Reprimands",
+                "Suspension",
+                "Corner cutting",
+                "Penalty points",
+                "Unsafe pit release",
+                "Warnings",
+                "Official warnings and reprimands"
+            });
+            this.Controls.Add(cmbPenaltyType);
+
+            // Reason
+            Label lblReason = new Label
+            {
+                Text = "Reason:",
+                Location = new Point(20, 100),
+                Size = new Size(120, 20)
+            };
+            this.Controls.Add(lblReason);
+
+            txtReason = new TextBox
+            {
+                Location = new Point(150, 97),
+                Size = new Size(310, 60),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical
+            };
+            this.Controls.Add(txtReason);
+
+            // Driver
+            Label lblDriver = new Label
+            {
+                Text = "Driver (optional):",
+                Location = new Point(20, 170),
+                Size = new Size(120, 20)
+            };
+            this.Controls.Add(lblDriver);
+
+            cmbDriver = new ComboBox
+            {
+                Location = new Point(150, 167),
+                Size = new Size(310, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            this.Controls.Add(cmbDriver);
+
+            // Result
+            Label lblResult = new Label
+            {
+                Text = "Result (optional):",
+                Location = new Point(20, 210),
+                Size = new Size(120, 20)
+            };
+            this.Controls.Add(lblResult);
+
+            cmbResult = new ComboBox
+            {
+                Location = new Point(150, 207),
+                Size = new Size(310, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            this.Controls.Add(cmbResult);
+
+            // Buttons
+            Button btnOK = new Button
+            {
+                Text = "Add Penalty",
+                Location = new Point(250, 310),
+                Size = new Size(100, 35),
+                BackColor = Color.FromArgb(220, 20, 20),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnOK.FlatAppearance.BorderSize = 0;
+            btnOK.Click += BtnOK_Click;
+            this.Controls.Add(btnOK);
+
+            Button btnCancel = new Button
+            {
+                Text = "Cancel",
+                Location = new Point(360, 310),
+                Size = new Size(100, 35),
+                BackColor = Color.Gray,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.DialogResult = DialogResult.Cancel;
+            this.Controls.Add(btnCancel);
+
+            this.AcceptButton = btnOK;
+            this.CancelButton = btnCancel;
+        }
+
+        private void LoadDrivers()
+        {
+            if (cmbDriver == null) return;
+            
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(DbConfig.ConnectionString))
+                {
+                    conn.Open();
+                    string query = @"
+                        SELECT p.ID_Piloto, p.NumeroPermanente, p.Abreviação, m.Nome, e.Nome AS Team
+                        FROM Piloto p
+                        LEFT JOIN Membros_da_Equipa m ON p.ID_Membro = m.ID_Membro
+                        LEFT JOIN Equipa e ON p.ID_Equipa = e.ID_Equipa
+                        ORDER BY m.Nome";
+                    
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    
+                    cmbDriver.Items.Add("-- None --");
+                    while (reader.Read())
+                    {
+                        int id = reader.GetInt32(0);
+                        string num = reader.IsDBNull(1) ? "?" : reader.GetInt32(1).ToString();
+                        string code = reader.IsDBNull(2) ? "???" : reader.GetString(2);
+                        string name = reader.IsDBNull(3) ? "Unknown" : reader.GetString(3);
+                        string team = reader.IsDBNull(4) ? "No Team" : reader.GetString(4);
+                        
+                        cmbDriver.Items.Add(new DriverItem 
+                        { 
+                            ID = id, 
+                            Number = num, 
+                            Code = code, 
+                            Name = name, 
+                            Team = team 
+                        });
+                    }
+                    
+                    cmbDriver.SelectedIndex = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading drivers: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void LoadResults()
+        {
+            if (cmbResult == null) return;
+            
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(DbConfig.ConnectionString))
+                {
+                    conn.Open();
+                    string query = @"
+                        SELECT r.ID_Resultado, p.NumeroPermanente, p.Abreviação, r.PosiçãoFinal, r.Status
+                        FROM Resultados r
+                        INNER JOIN Piloto p ON r.ID_Piloto = p.ID_Piloto
+                        WHERE r.NomeSessão = @Session AND r.NomeGP = @GP
+                        ORDER BY r.PosiçãoFinal";
+                    
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Session", sessionName);
+                    cmd.Parameters.AddWithValue("@GP", gpName);
+                    
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    
+                    cmbResult.Items.Add("-- None --");
+                    while (reader.Read())
+                    {
+                        int id = reader.GetInt32(0);
+                        string num = reader.IsDBNull(1) ? "?" : reader.GetInt32(1).ToString();
+                        string code = reader.IsDBNull(2) ? "???" : reader.GetString(2);
+                        int pos = reader.IsDBNull(3) ? 0 : reader.GetInt32(3);
+                        string status = reader.IsDBNull(4) ? "?" : reader.GetString(4);
+                        
+                        cmbResult.Items.Add(new ResultItem 
+                        { 
+                            ID = id, 
+                            Display = $"P{pos} - #{num} {code} ({status})" 
+                        });
+                    }
+                    
+                    cmbResult.SelectedIndex = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading results: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void BtnOK_Click(object? sender, EventArgs e)
+        {
+            // Validation
+            if (cmbPenaltyType == null || cmbPenaltyType.SelectedIndex < 0)
+            {
+                MessageBox.Show("Please select a penalty type.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (txtReason == null || string.IsNullOrWhiteSpace(txtReason.Text))
+            {
+                MessageBox.Show("Please enter a reason for the penalty.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Get values
+            PenaltyType = cmbPenaltyType.SelectedItem?.ToString() ?? "";
+            Reason = txtReason.Text.Trim();
+            
+            if (cmbDriver != null && cmbDriver.SelectedIndex > 0 && cmbDriver.SelectedItem is DriverItem driver)
+            {
+                DriverId = driver.ID;
+            }
+            
+            if (cmbResult != null && cmbResult.SelectedIndex > 0 && cmbResult.SelectedItem is ResultItem result)
+            {
+                ResultId = result.ID;
+            }
+
+            this.DialogResult = DialogResult.OK;
+            this.Close();
+        }
+
+        private class DriverItem
+        {
+            public int ID { get; set; }
+            public string Number { get; set; } = "";
+            public string Code { get; set; } = "";
+            public string Name { get; set; } = "";
+            public string Team { get; set; } = "";
+
+            public override string ToString()
+            {
+                return $"#{Number} {Code} - {Name} ({Team})";
+            }
+        }
+
+        private class ResultItem
+        {
+            public int ID { get; set; }
+            public string Display { get; set; } = "";
+
+            public override string ToString()
+            {
+                return Display;
             }
         }
     }

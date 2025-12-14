@@ -190,32 +190,21 @@ namespace ProjetoFBD
     // Configurar o DataGridView
     if (dgvGPs != null && gpTable != null && gpTable.Rows.Count > 0)
     {
-        dgvGPs.AutoGenerateColumns = true;
-        dgvGPs.DataSource = gpTable;
+        dgvGPs.AutoGenerateColumns = false;
+        dgvGPs.Columns.Clear();
         
-        // Wait for columns to be generated
-        dgvGPs.Refresh();
-        Application.DoEvents();
-        
-        // Manter apenas a coluna de nome e ajustar cabeçalho
-        if (dgvGPs.Columns.Count > 0)
+        // Manually add column to avoid any null reference issues
+        DataGridViewTextBoxColumn gpColumn = new DataGridViewTextBoxColumn
         {
-            foreach (DataGridViewColumn column in dgvGPs.Columns)
-            {
-                if (column != null)
-                {
-                    if (column.Name == "Grand Prix Name" || column.Name == "GP_Name" || column.Name == "NomeGP")
-                    {
-                        column.HeaderText = "Grand Prix Name";
-                        column.Width = 400;
-                    }
-                    else
-                    {
-                        column.Visible = false;
-                    }
-                }
-            }
-        }
+            DataPropertyName = gpTable.Columns[0].ColumnName,
+            HeaderText = "Grand Prix Name",
+            Name = "GPName",
+            Width = 400,
+            ReadOnly = true
+        };
+        dgvGPs.Columns.Add(gpColumn);
+        
+        dgvGPs.DataSource = gpTable;
     }
     else if (dgvGPs != null)
     {
@@ -270,8 +259,8 @@ namespace ProjetoFBD
     
     DataGridViewRow selectedRow = dgvGPs.SelectedRows[0];
     
-    // Get GP name from the only column we have
-    string? gpName = selectedRow.Cells["Grand Prix Name"]?.Value?.ToString();
+    // Get GP name from the column
+    string? gpName = selectedRow.Cells["GPName"]?.Value?.ToString();
     
     if (string.IsNullOrEmpty(gpName))
     {
@@ -348,7 +337,7 @@ namespace ProjetoFBD
             }
             
             DataGridViewRow selectedRow = dgvGPs.SelectedRows[0];
-            string gpName = selectedRow.Cells["Grand Prix Name"]?.Value?.ToString() ?? "Unknown GP";
+            string gpName = selectedRow.Cells["GPName"]?.Value?.ToString() ?? "Unknown GP";
             
             // Mensagem informativa (você precisaria implementar a edição propriamente dita)
             MessageBox.Show($"Would open edit form for: {gpName}\n\n" +

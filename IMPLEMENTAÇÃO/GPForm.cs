@@ -119,7 +119,7 @@ namespace ProjetoFBD
 
         private void LoadGPData()
         {
-            string connectionString = DbConfig.ConnectionString;
+            string connectionString = ProjetoFBD.DbConfig.ConnectionString;
             
             // QUERY SIMPLIFICADA - apenas as 4 colunas que você quer
             string query = @"
@@ -208,7 +208,7 @@ namespace ProjetoFBD
         {
             if (dataAdapter != null && gpTable != null && userRole == "Staff")
             {
-                string connectionString = DbConfig.ConnectionString;
+                string connectionString = ProjetoFBD.DbConfig.ConnectionString;
 
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
@@ -432,7 +432,10 @@ namespace ProjetoFBD
             try
             {
                 SessionForm sessionForm = new SessionForm(this.userRole, selectedGP);
-                NavigationHelper.NavigateTo(sessionForm, "SESSIONS - " + selectedGP);
+                sessionForm.ShowDialog();
+                
+                // Atualizar a lista de GPs após fechar o form de sessões (caso tenha mudanças)
+                LoadGPData();
             }
             catch (Exception ex)
             {
@@ -580,7 +583,7 @@ namespace ProjetoFBD
         {
             try
             {
-                string connectionString = DbConfig.ConnectionString;
+                string connectionString = ProjetoFBD.DbConfig.ConnectionString;
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
@@ -602,7 +605,7 @@ namespace ProjetoFBD
         {
             try
             {
-                string connectionString = DbConfig.ConnectionString;
+                string connectionString = ProjetoFBD.DbConfig.ConnectionString;
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();

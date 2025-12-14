@@ -90,14 +90,20 @@ namespace ProjetoFBD
                     {
                         dgvStandings.DataSource = standingsTable;
                         
-                        // Configure columns
-                        if (dgvStandings.Columns.Contains("Position"))
+                        // Wait for columns to be auto-generated
+                        dgvStandings.Refresh();
+                        Application.DoEvents();
+                        
+                        try
                         {
-                            dgvStandings.Columns["Position"]!.HeaderText = "Pos";
-                            dgvStandings.Columns["Position"]!.Width = 60;
-                            dgvStandings.Columns["Position"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            dgvStandings.Columns["Position"]!.DefaultCellStyle.Font = new Font("Arial", 10, FontStyle.Bold);
-                        }
+                            // Configure columns
+                            if (dgvStandings.Columns.Contains("Position"))
+                            {
+                                dgvStandings.Columns["Position"]!.HeaderText = "Pos";
+                                dgvStandings.Columns["Position"]!.Width = 60;
+                                dgvStandings.Columns["Position"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                                dgvStandings.Columns["Position"]!.DefaultCellStyle.Font = new Font("Arial", 10, FontStyle.Bold);
+                            }
                         
                         if (dgvStandings.Columns.Contains("Number"))
                         {
@@ -166,6 +172,12 @@ namespace ProjetoFBD
                         dgvStandings.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(240, 240, 240);
                         dgvStandings.RowsDefaultCellStyle.SelectionBackColor = Color.FromArgb(220, 20, 20);
                         dgvStandings.RowsDefaultCellStyle.SelectionForeColor = Color.White;
+                        }
+                        catch (Exception colEx)
+                        {
+                            Console.WriteLine($"Error configuring columns: {colEx.Message}");
+                            // Continue - column configuration is not critical
+                        }
                     }
                     
                     // Show count
