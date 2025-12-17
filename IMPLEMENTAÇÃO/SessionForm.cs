@@ -1149,25 +1149,28 @@ namespace ProjetoFBD
                     dgvPitstops.Refresh();
                     Application.DoEvents();
 
-                    if (dgvPitstops.Columns.Contains("ID_Pitstop") && dgvPitstops.Columns["ID_Pitstop"] != null)
+                    if (dgvPitstops.Columns != null)
                     {
-                        dgvPitstops.Columns["ID_Pitstop"]!.HeaderText = "ID";
-                        dgvPitstops.Columns["ID_Pitstop"]!.Width = 60;
+                        if (dgvPitstops.Columns.Contains("ID_Pitstop") && dgvPitstops.Columns["ID_Pitstop"] != null)
+                        {
+                            dgvPitstops.Columns["ID_Pitstop"]!.HeaderText = "ID";
+                            dgvPitstops.Columns["ID_Pitstop"]!.Width = 60;
+                        }
+                        if (dgvPitstops.Columns.Contains("NumeroVolta") && dgvPitstops.Columns["NumeroVolta"] != null)
+                            dgvPitstops.Columns["NumeroVolta"]!.HeaderText = "Lap";
+                        if (dgvPitstops.Columns.Contains("DuraçãoParagem") && dgvPitstops.Columns["DuraçãoParagem"] != null)
+                            dgvPitstops.Columns["DuraçãoParagem"]!.HeaderText = "Stop Duration";
+                        if (dgvPitstops.Columns.Contains("DuraçãoPitlane") && dgvPitstops.Columns["DuraçãoPitlane"] != null)
+                            dgvPitstops.Columns["DuraçãoPitlane"]!.HeaderText = "Pitlane Duration";
+                        if (dgvPitstops.Columns.Contains("DriverCode") && dgvPitstops.Columns["DriverCode"] != null)
+                            dgvPitstops.Columns["DriverCode"]!.HeaderText = "Driver Code";
+                        if (dgvPitstops.Columns.Contains("DriverName") && dgvPitstops.Columns["DriverName"] != null)
+                            dgvPitstops.Columns["DriverName"]!.HeaderText = "Driver";
+                        if (dgvPitstops.Columns.Contains("TeamName") && dgvPitstops.Columns["TeamName"] != null)
+                            dgvPitstops.Columns["TeamName"]!.HeaderText = "Team";
+                        if (dgvPitstops.Columns.Contains("Position") && dgvPitstops.Columns["Position"] != null)
+                            dgvPitstops.Columns["Position"]!.HeaderText = "Final Position";
                     }
-                    if (dgvPitstops.Columns.Contains("NumeroVolta") && dgvPitstops.Columns["NumeroVolta"] != null)
-                        dgvPitstops.Columns["NumeroVolta"]!.HeaderText = "Lap";
-                    if (dgvPitstops.Columns.Contains("DuraçãoParagem") && dgvPitstops.Columns["DuraçãoParagem"] != null)
-                        dgvPitstops.Columns["DuraçãoParagem"]!.HeaderText = "Stop Duration";
-                    if (dgvPitstops.Columns.Contains("DuraçãoPitlane") && dgvPitstops.Columns["DuraçãoPitlane"] != null)
-                        dgvPitstops.Columns["DuraçãoPitlane"]!.HeaderText = "Pitlane Duration";
-                    if (dgvPitstops.Columns.Contains("DriverCode") && dgvPitstops.Columns["DriverCode"] != null)
-                        dgvPitstops.Columns["DriverCode"]!.HeaderText = "Driver Code";
-                    if (dgvPitstops.Columns.Contains("DriverName") && dgvPitstops.Columns["DriverName"] != null)
-                        dgvPitstops.Columns["DriverName"]!.HeaderText = "Driver";
-                    if (dgvPitstops.Columns.Contains("TeamName") && dgvPitstops.Columns["TeamName"] != null)
-                        dgvPitstops.Columns["TeamName"]!.HeaderText = "Team";
-                    if (dgvPitstops.Columns.Contains("Position") && dgvPitstops.Columns["Position"] != null)
-                        dgvPitstops.Columns["Position"]!.HeaderText = "Final Position";
                 }
             }
             catch (Exception ex)
@@ -1755,21 +1758,24 @@ namespace ProjetoFBD
                     dgvPenalties.Refresh();
                     Application.DoEvents();
 
-                    if (dgvPenalties.Columns.Contains("ID_Penalização") && dgvPenalties.Columns["ID_Penalização"] != null)
+                    if (dgvPenalties.Columns != null)
                     {
-                        dgvPenalties.Columns["ID_Penalização"]!.HeaderText = "ID";
-                        dgvPenalties.Columns["ID_Penalização"]!.Width = 60;
+                        if (dgvPenalties.Columns.Contains("ID_Penalização") && dgvPenalties.Columns["ID_Penalização"] != null)
+                        {
+                            dgvPenalties.Columns["ID_Penalização"]!.HeaderText = "ID";
+                            dgvPenalties.Columns["ID_Penalização"]!.Width = 60;
+                        }
+                        if (dgvPenalties.Columns.Contains("TipoPenalização") && dgvPenalties.Columns["TipoPenalização"] != null)
+                            dgvPenalties.Columns["TipoPenalização"]!.HeaderText = "Penalty Type";
+                        if (dgvPenalties.Columns.Contains("Motivo") && dgvPenalties.Columns["Motivo"] != null)
+                            dgvPenalties.Columns["Motivo"]!.HeaderText = "Reason";
+                        if (dgvPenalties.Columns.Contains("DriverCode") && dgvPenalties.Columns["DriverCode"] != null)
+                            dgvPenalties.Columns["DriverCode"]!.HeaderText = "Driver Code";
+                        if (dgvPenalties.Columns.Contains("DriverName") && dgvPenalties.Columns["DriverName"] != null)
+                            dgvPenalties.Columns["DriverName"]!.HeaderText = "Driver";
+                        if (dgvPenalties.Columns.Contains("TeamName") && dgvPenalties.Columns["TeamName"] != null)
+                            dgvPenalties.Columns["TeamName"]!.HeaderText = "Team";
                     }
-                    if (dgvPenalties.Columns.Contains("TipoPenalização") && dgvPenalties.Columns["TipoPenalização"] != null)
-                        dgvPenalties.Columns["TipoPenalização"]!.HeaderText = "Penalty Type";
-                    if (dgvPenalties.Columns.Contains("Motivo") && dgvPenalties.Columns["Motivo"] != null)
-                        dgvPenalties.Columns["Motivo"]!.HeaderText = "Reason";
-                    if (dgvPenalties.Columns.Contains("DriverCode") && dgvPenalties.Columns["DriverCode"] != null)
-                        dgvPenalties.Columns["DriverCode"]!.HeaderText = "Driver Code";
-                    if (dgvPenalties.Columns.Contains("DriverName") && dgvPenalties.Columns["DriverName"] != null)
-                        dgvPenalties.Columns["DriverName"]!.HeaderText = "Driver";
-                    if (dgvPenalties.Columns.Contains("TeamName") && dgvPenalties.Columns["TeamName"] != null)
-                        dgvPenalties.Columns["TeamName"]!.HeaderText = "Team";
                 }
             }
             catch (Exception ex)

@@ -506,8 +506,9 @@ namespace ProjetoFBD
         private void DgvSeasons_CellValidating(object? sender, DataGridViewCellValidatingEventArgs e)
         {
             if (dgvSeasons == null || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (dgvSeasons.Columns == null || e.ColumnIndex >= dgvSeasons.Columns.Count) return;
             
-            string? columnName = dgvSeasons.Columns[e.ColumnIndex].Name;
+            string? columnName = dgvSeasons.Columns[e.ColumnIndex]?.Name;
             string value = e.FormattedValue?.ToString() ?? "";
             
             try
@@ -569,10 +570,11 @@ namespace ProjetoFBD
         private void DgvSeasons_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
         {
             if (dgvSeasons == null || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (dgvSeasons.Columns == null || e.ColumnIndex >= dgvSeasons.Columns.Count) return;
             
             dgvSeasons.Rows[e.RowIndex].ErrorText = "";
             
-            string? columnName = dgvSeasons.Columns[e.ColumnIndex].Name;
+            string? columnName = dgvSeasons.Columns[e.ColumnIndex]?.Name;
             
             if (!string.IsNullOrEmpty(columnName) && 
                 (columnName == "PosiçãoPiloto" || columnName == "PosiçãoEquipa" ||
@@ -805,14 +807,17 @@ namespace ProjetoFBD
                     dgvDriverStandings.Refresh();
                     Application.DoEvents();
 
-                    if (dgvDriverStandings.Columns.Contains("Position") && dgvDriverStandings.Columns["Position"] != null)
-                        dgvDriverStandings.Columns["Position"]!.Width = 60;
-                    if (dgvDriverStandings.Columns.Contains("TotalPoints") && dgvDriverStandings.Columns["TotalPoints"] != null)
-                        dgvDriverStandings.Columns["TotalPoints"]!.HeaderText = "Points";
-                    if (dgvDriverStandings.Columns.Contains("Wins") && dgvDriverStandings.Columns["Wins"] != null)
-                        dgvDriverStandings.Columns["Wins"]!.Width = 60;
-                    if (dgvDriverStandings.Columns.Contains("Podiums") && dgvDriverStandings.Columns["Podiums"] != null)
-                        dgvDriverStandings.Columns["Podiums"]!.Width = 80;
+                    if (dgvDriverStandings.Columns != null)
+                    {
+                        if (dgvDriverStandings.Columns.Contains("Position") && dgvDriverStandings.Columns["Position"] != null)
+                            dgvDriverStandings.Columns["Position"]!.Width = 60;
+                        if (dgvDriverStandings.Columns.Contains("TotalPoints") && dgvDriverStandings.Columns["TotalPoints"] != null)
+                            dgvDriverStandings.Columns["TotalPoints"]!.HeaderText = "Points";
+                        if (dgvDriverStandings.Columns.Contains("Wins") && dgvDriverStandings.Columns["Wins"] != null)
+                            dgvDriverStandings.Columns["Wins"]!.Width = 60;
+                        if (dgvDriverStandings.Columns.Contains("Podiums") && dgvDriverStandings.Columns["Podiums"] != null)
+                            dgvDriverStandings.Columns["Podiums"]!.Width = 80;
+                    }
                 }
             }
             catch (Exception ex)
@@ -859,14 +864,17 @@ namespace ProjetoFBD
                     dgvTeamStandings.Refresh();
                     Application.DoEvents();
 
-                    if (dgvTeamStandings.Columns.Contains("Position") && dgvTeamStandings.Columns["Position"] != null)
-                        dgvTeamStandings.Columns["Position"]!.Width = 60;
-                    if (dgvTeamStandings.Columns.Contains("TotalPoints") && dgvTeamStandings.Columns["TotalPoints"] != null)
-                        dgvTeamStandings.Columns["TotalPoints"]!.HeaderText = "Points";
-                    if (dgvTeamStandings.Columns.Contains("Wins") && dgvTeamStandings.Columns["Wins"] != null)
-                        dgvTeamStandings.Columns["Wins"]!.Width = 60;
-                    if (dgvTeamStandings.Columns.Contains("Podiums") && dgvTeamStandings.Columns["Podiums"] != null)
-                        dgvTeamStandings.Columns["Podiums"]!.Width = 80;
+                    if (dgvTeamStandings.Columns != null)
+                    {
+                        if (dgvTeamStandings.Columns.Contains("Position") && dgvTeamStandings.Columns["Position"] != null)
+                            dgvTeamStandings.Columns["Position"]!.Width = 60;
+                        if (dgvTeamStandings.Columns.Contains("TotalPoints") && dgvTeamStandings.Columns["TotalPoints"] != null)
+                            dgvTeamStandings.Columns["TotalPoints"]!.HeaderText = "Points";
+                        if (dgvTeamStandings.Columns.Contains("Wins") && dgvTeamStandings.Columns["Wins"] != null)
+                            dgvTeamStandings.Columns["Wins"]!.Width = 60;
+                        if (dgvTeamStandings.Columns.Contains("Podiums") && dgvTeamStandings.Columns["Podiums"] != null)
+                            dgvTeamStandings.Columns["Podiums"]!.Width = 80;
+                    }
                 }
             }
             catch (Exception ex)
