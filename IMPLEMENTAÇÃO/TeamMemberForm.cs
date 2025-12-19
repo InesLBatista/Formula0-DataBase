@@ -124,48 +124,50 @@ namespace ProjetoFBD
                 FROM Membros_da_Equipa m
                 LEFT JOIN Equipa e ON m.ID_Equipa = e.ID_Equipa
                 ORDER BY m.Nome ASC";
-
             try
             {
                 dataAdapter = new SqlDataAdapter(query, connectionString);
                 memberTable = new DataTable();
                 dataAdapter.Fill(memberTable);
                 
-                if (dgvMembers.Columns != null)
+                if (dgvMembers != null)
                 {
                     dgvMembers.DataSource = memberTable;
 
-                    DataGridViewColumn? c;
-
-                    if (dgvMembers.Columns.Contains("ID_Membro") && (c = dgvMembers.Columns["ID_Membro"]) != null)
+                    if (dgvMembers.Columns != null && dgvMembers.Columns.Count > 0)
                     {
-                        c.HeaderText = "Member ID";
-                        c.ReadOnly = true;
-                        c.Width = 80;
-                    }
+                        DataGridViewColumn? c;
 
-                    if (dgvMembers.Columns.Contains("Nome") && (c = dgvMembers.Columns["Nome"]) != null)
-                        c.HeaderText = "Name";
+                        if (dgvMembers.Columns.Contains("ID_Membro") && (c = dgvMembers.Columns["ID_Membro"]) != null)
+                        {
+                            c.HeaderText = "Member ID";
+                            c.ReadOnly = true;
+                            c.Width = 80;
+                        }
 
-                    if (dgvMembers.Columns.Contains("Nacionalidade") && (c = dgvMembers.Columns["Nacionalidade"]) != null)
-                        c.HeaderText = "Nationality";
+                        if (dgvMembers.Columns.Contains("Nome") && (c = dgvMembers.Columns["Nome"]) != null)
+                            c.HeaderText = "Name";
 
-                    if (dgvMembers.Columns.Contains("DataNascimento") && (c = dgvMembers.Columns["DataNascimento"]) != null)
-                        c.HeaderText = "Birth Date";
+                        if (dgvMembers.Columns.Contains("Nacionalidade") && (c = dgvMembers.Columns["Nacionalidade"]) != null)
+                            c.HeaderText = "Nationality";
 
-                    if (dgvMembers.Columns.Contains("Género") && (c = dgvMembers.Columns["Género"]) != null)
-                        c.HeaderText = "Gender";
+                        if (dgvMembers.Columns.Contains("DataNascimento") && (c = dgvMembers.Columns["DataNascimento"]) != null)
+                            c.HeaderText = "Birth Date";
 
-                    if (dgvMembers.Columns.Contains("Função") && (c = dgvMembers.Columns["Função"]) != null)
-                        c.HeaderText = "Role";
+                        if (dgvMembers.Columns.Contains("Género") && (c = dgvMembers.Columns["Género"]) != null)
+                            c.HeaderText = "Gender";
 
-                    if (dgvMembers.Columns.Contains("ID_Equipa") && (c = dgvMembers.Columns["ID_Equipa"]) != null)
-                        c.Visible = false;
+                        if (dgvMembers.Columns.Contains("Função") && (c = dgvMembers.Columns["Função"]) != null)
+                            c.HeaderText = "Role";
 
-                    if (dgvMembers.Columns.Contains("TeamName") && (c = dgvMembers.Columns["TeamName"]) != null)
-                    {
-                        c.HeaderText = "Team";
-                        c.ReadOnly = true;
+                        if (dgvMembers.Columns.Contains("ID_Equipa") && (c = dgvMembers.Columns["ID_Equipa"]) != null)
+                            c.Visible = false;
+
+                        if (dgvMembers.Columns.Contains("TeamName") && (c = dgvMembers.Columns["TeamName"]) != null)
+                        {
+                            c.HeaderText = "Team";
+                            c.ReadOnly = true;
+                        }
                     }
                 }
             }
@@ -202,23 +204,23 @@ namespace ProjetoFBD
                                   Função = @Função,
                                   ID_Equipa = @ID_Equipa
                               WHERE ID_Membro = @ID_Membro", connection);
-                        dataAdapter.UpdateCommand.Parameters.Add("@Nome", SqlDbType.NVarChar, 100, "Nome");
-                        dataAdapter.UpdateCommand.Parameters.Add("@Nacionalidade", SqlDbType.NVarChar, 100, "Nacionalidade");
-                        dataAdapter.UpdateCommand.Parameters.Add("@DataNascimento", SqlDbType.Date, 0, "DataNascimento");
-                        dataAdapter.UpdateCommand.Parameters.Add("@Género", SqlDbType.Char, 1, "Género");
-                        dataAdapter.UpdateCommand.Parameters.Add("@Função", SqlDbType.NVarChar, 100, "Função");
-                        dataAdapter.UpdateCommand.Parameters.Add("@ID_Equipa", SqlDbType.Int, 0, "ID_Equipa");
+                        dataAdapter.UpdateCommand.Parameters.Add("@Nome", SqlDbType.NVarChar, 100, "Name");
+                        dataAdapter.UpdateCommand.Parameters.Add("@Nacionalidade", SqlDbType.NVarChar, 100, "Nationality");
+                        dataAdapter.UpdateCommand.Parameters.Add("@DataNascimento", SqlDbType.Date, 0, "Birthday");
+                        dataAdapter.UpdateCommand.Parameters.Add("@Género", SqlDbType.Char, 1, "Gender");
+                        dataAdapter.UpdateCommand.Parameters.Add("@Função", SqlDbType.NVarChar, 100, "Role");
+                        dataAdapter.UpdateCommand.Parameters.Add("@ID_Equipa", SqlDbType.Int, 0, "TeamID");
                         dataAdapter.UpdateCommand.Parameters.Add("@ID_Membro", SqlDbType.Int, 0, "ID_Membro");
                         
                         dataAdapter.InsertCommand = new SqlCommand(
                             @"INSERT INTO Membros_da_Equipa (Nome, Nacionalidade, DataNascimento, Género, Função, ID_Equipa) 
                               VALUES (@Nome, @Nacionalidade, @DataNascimento, @Género, @Função, @ID_Equipa)", connection);
-                        dataAdapter.InsertCommand.Parameters.Add("@Nome", SqlDbType.NVarChar, 100, "Nome");
-                        dataAdapter.InsertCommand.Parameters.Add("@Nacionalidade", SqlDbType.NVarChar, 100, "Nacionalidade");
-                        dataAdapter.InsertCommand.Parameters.Add("@DataNascimento", SqlDbType.Date, 0, "DataNascimento");
-                        dataAdapter.InsertCommand.Parameters.Add("@Género", SqlDbType.Char, 1, "Género");
-                        dataAdapter.InsertCommand.Parameters.Add("@Função", SqlDbType.NVarChar, 100, "Função");
-                        dataAdapter.InsertCommand.Parameters.Add("@ID_Equipa", SqlDbType.Int, 0, "ID_Equipa");
+                        dataAdapter.InsertCommand.Parameters.Add("@Nome", SqlDbType.NVarChar, 100, "Name");
+                        dataAdapter.InsertCommand.Parameters.Add("@Nacionalidade", SqlDbType.NVarChar, 100, "Nationality");
+                        dataAdapter.InsertCommand.Parameters.Add("@DataNascimento", SqlDbType.Date, 0, "Birthday");
+                        dataAdapter.InsertCommand.Parameters.Add("@Género", SqlDbType.Char, 1, "Gender");
+                        dataAdapter.InsertCommand.Parameters.Add("@Função", SqlDbType.NVarChar, 100, "Role");
+                        dataAdapter.InsertCommand.Parameters.Add("@ID_Equipa", SqlDbType.Int, 0, "TeamID");
                         
                         dataAdapter.DeleteCommand = new SqlCommand(
                             @"DELETE FROM Membros_da_Equipa WHERE ID_Membro = @ID_Membro", connection);
@@ -253,7 +255,7 @@ namespace ProjetoFBD
                 {
                     DataRow newRow = memberTable.NewRow();
                     
-                    // Nome
+                    // Name
                     using (var inputForm = new InputDialog("Add Team Member", "Name:"))
                     {
                         if (inputForm.ShowDialog() == DialogResult.OK &&
@@ -268,8 +270,8 @@ namespace ProjetoFBD
                             return;
                         }
                     }
-                    
-                    // Nacionalidade
+
+                    // Nationality
                     using (var inputForm = new InputDialog("Add Team Member", "Nationality:"))
                     {
                         if (inputForm.ShowDialog() == DialogResult.OK &&
@@ -284,8 +286,8 @@ namespace ProjetoFBD
                             return;
                         }
                     }
-                    
-                    // Data Nascimento
+
+                    // Birth Date
                     using (var inputForm = new InputDialog("Add Team Member", "Birth Date (YYYY-MM-DD):"))
                     {
                         if (inputForm.ShowDialog() == DialogResult.OK &&
@@ -300,8 +302,8 @@ namespace ProjetoFBD
                             return;
                         }
                     }
-                    
-                    // Género
+
+                    // Gender
                     using (var inputForm = new InputDialog("Add Team Member", "Gender (M/F):"))
                     {
                         if (inputForm.ShowDialog() == DialogResult.OK &&
@@ -326,9 +328,9 @@ namespace ProjetoFBD
                             return;
                         }
                     }
-                    
-                    // Função
-                    using (var inputForm = new InputDialog("Add Team Member", "Role/Function:"))
+
+                    // Role
+                    using (var inputForm = new InputDialog("Add Team Member", "Role:"))
                     {
                         if (inputForm.ShowDialog() == DialogResult.OK &&
                             !string.IsNullOrWhiteSpace(inputForm.InputValue))

@@ -52,10 +52,6 @@ C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\bin\Debug\net9.
 C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\bin\Debug\net9.0-windows\runtimes\unix\lib\net8.0\System.Data.SqlClient.dll
 C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\bin\Debug\net9.0-windows\runtimes\win\lib\net8.0\System.Data.SqlClient.dll
 C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\ProjetoFBD.csproj.AssemblyReference.cache
-C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\CircuitsGridControl.baml
-C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\CircuitsGridControl.g.cs
-C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\ProjetoFBD_MarkupCompile.cache
-C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\ProjetoFBD.g.resources
 C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\ProjetoFBD.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\ProjetoFBD.AssemblyInfoInputs.cache
 C:\Users\user\Documents\GitHub\Formula0-DataBase\IMPLEMENTAÇÃO\obj\Debug\net9.0-windows\ProjetoFBD.AssemblyInfo.cs

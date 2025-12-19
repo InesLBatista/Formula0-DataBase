@@ -13,6 +13,8 @@ namespace ProjetoFBD
         private DataGridView? dgvTeams;
         private Panel? pnlStaffActions;
         private Chart? chartTeamPoints;
+        private TextBox? txtSearch;
+        private DataTable? teamDataComplete;
         
         private string userRole;
         private SqlDataAdapter? dataAdapter;
@@ -39,7 +41,7 @@ namespace ProjetoFBD
 
         private void SetupLayout()
         {
-            // Título
+            // Title
             Label lblTitle = new Label
             {
                 Text = "Teams Management",
@@ -50,12 +52,32 @@ namespace ProjetoFBD
             };
             this.Controls.Add(lblTitle);
 
-            // DataGridView para listar equipas
+            // Search bar
+            Label lblSearch = new Label
+            {
+                Text = "Search Team:",
+                Location = new Point(20, 58),
+                Size = new Size(100, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular)
+            };
+            this.Controls.Add(lblSearch);
+
+            txtSearch = new TextBox
+            {
+                Location = new Point(125, 55),
+                Size = new Size(300, 25),
+                Font = new Font("Segoe UI", 10),
+                PlaceholderText = "Type team name or base..."
+            };
+            txtSearch.TextChanged += TxtSearch_TextChanged;
+            this.Controls.Add(txtSearch);
+
+            // DataGridView for listing teams
             dgvTeams = new DataGridView
             {
                 Name = "dgvTeams",
-                Location = new Point(20, 70),
-                Size = new Size(750, 480),
+                Location = new Point(20, 90),
+                Size = new Size(750, 460),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left,
                 AllowUserToAddRows = false,
                 ReadOnly = false,
@@ -64,14 +86,19 @@ namespace ProjetoFBD
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 RowHeadersVisible = false
             };
+            
+            // Centralizar conteúdo das células
+            dgvTeams.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvTeams.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            
             this.Controls.Add(dgvTeams);
 
             // Chart para pontos das equipas
             chartTeamPoints = new Chart
             {
                 Name = "chartTeamPoints",
-                Location = new Point(790, 70),
-                Size = new Size(580, 480),
+                Location = new Point(790, 90),
+                Size = new Size(580, 460),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
                 BackColor = Color.White
             };
@@ -126,13 +153,13 @@ namespace ProjetoFBD
             };
             this.Controls.Add(pnlStaffActions);
 
-            // Create Buttons
+            // Create Buttons - equidistantes
             Button btnSave = CreateActionButton("Save Changes", new Point(0, 5));
-            Button btnAdd = CreateActionButton("Add Team", new Point(140, 5));
-            Button btnDelete = CreateActionButton("Delete", new Point(260, 5));
-            Button btnRefresh = CreateActionButton("Refresh", new Point(360, 5));
-            Button btnViewResults = CreateActionButton("View Results", new Point(480, 5));
-            Button btnViewDetails = CreateActionButton("View Details", new Point(620, 5));
+            Button btnAdd = CreateActionButton("Add Team", new Point(145, 5));
+            Button btnDelete = CreateActionButton("Delete", new Point(290, 5));
+            Button btnRefresh = CreateActionButton("Refresh", new Point(435, 5));
+            Button btnViewResults = CreateActionButton("View Results", new Point(580, 5));
+            Button btnViewDetails = CreateActionButton("View Details", new Point(725, 5));
             
             // Style special buttons
             btnViewDetails.BackColor = Color.FromArgb(0, 102, 204);
@@ -153,7 +180,7 @@ namespace ProjetoFBD
             pnlStaffActions.Controls.Add(btnViewResults);
             pnlStaffActions.Controls.Add(btnViewDetails);
             
-            pnlStaffActions.Size = new Size(760, 50);
+            pnlStaffActions.Size = new Size(870, 50);
 
             // Role-Based Access Control
             if (this.userRole == "Staff")
@@ -210,6 +237,9 @@ namespace ProjetoFBD
                 
                 dataAdapter.Fill(teamTable);
                 
+                // Guardar cópia dos dados completos para filtro
+                teamDataComplete = teamTable.Copy();
+                
                 if (dgvTeams != null)
                 {
                     dgvTeams.DataSource = teamTable;
@@ -227,7 +257,7 @@ namespace ProjetoFBD
                                 col.Width = 80;
                             }
                         }
-                        
+
                         if (dgvTeams.Columns.Contains("Nome"))
                         {
                             var col = dgvTeams.Columns["Nome"];
@@ -237,7 +267,7 @@ namespace ProjetoFBD
                                 col.Width = 200;
                             }
                         }
-                        
+
                         if (dgvTeams.Columns.Contains("Nacionalidade"))
                         {
                             var col = dgvTeams.Columns["Nacionalidade"];
@@ -247,7 +277,7 @@ namespace ProjetoFBD
                                 col.Width = 150;
                             }
                         }
-                        
+
                         if (dgvTeams.Columns.Contains("AnoEstreia"))
                         {
                             var col = dgvTeams.Columns["AnoEstreia"];
@@ -256,6 +286,16 @@ namespace ProjetoFBD
                                 col.HeaderText = "Debut Year";
                                 col.Width = 100;
                             }
+                        }
+
+                        // Hide any columns with Portuguese names not mapped above
+                        foreach (DataGridViewColumn col in dgvTeams.Columns)
+                        {
+                            if (col.Name == "ID_Equipa" || col.Name == "Nome" || col.Name == "Nacionalidade" || col.Name == "AnoEstreia")
+                                continue;
+                            // Hide columns with Portuguese names
+                            if (col.HeaderText == "ID_Equipa" || col.HeaderText == "Nome" || col.HeaderText == "Nacionalidade" || col.HeaderText == "AnoEstreia")
+                                col.Visible = false;
                         }
                     }
                     catch (Exception colEx)
@@ -782,6 +822,40 @@ namespace ProjetoFBD
             {
                 MessageBox.Show("Please select a team first.", "No Selection",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void TxtSearch_TextChanged(object? sender, EventArgs e)
+        {
+            if (txtSearch == null || teamDataComplete == null || dgvTeams == null)
+                return;
+
+            string searchText = txtSearch.Text.Trim();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                // Mostrar todos os dados
+                dgvTeams.DataSource = teamDataComplete;
+            }
+            else
+            {
+                // Filtrar dados
+                try
+                {
+                    DataView dv = new DataView(teamDataComplete);
+                    string escapedSearch = searchText.Replace("'", "''");
+                    
+                    // Filtro que procura em Nome e Nacionalidade
+                    dv.RowFilter = $"Nome LIKE '%{escapedSearch}%' OR Nacionalidade LIKE '%{escapedSearch}%' OR CONVERT(AnoEstreia, 'System.String') LIKE '%{escapedSearch}%'";
+                    
+                    dgvTeams.DataSource = dv.ToTable();
+                }
+                catch (Exception ex)
+                {
+                    // Se houver erro no filtro, mostrar todos os dados
+                    Console.WriteLine($"Filter error: {ex.Message}");
+                    dgvTeams.DataSource = teamDataComplete;
+                }
             }
         }
     }

@@ -12,6 +12,8 @@ namespace ProjetoFBD
         private int selectedYear;
         private DataGridView? dgvGPs;
         private Panel? pnlActions;
+        private TextBox? txtSearch;
+        private DataTable? gpDataTable;
         private bool isCircuitFilter;
         private int? filterCircuitId;
         private string? filterCircuitName;
@@ -71,12 +73,32 @@ namespace ProjetoFBD
             };
             this.Controls.Add(lblTitle);
 
+            // Search bar
+            Label lblSearch = new Label
+            {
+                Text = "Search GP:",
+                Location = new Point(20, 58),
+                Size = new Size(80, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular)
+            };
+            this.Controls.Add(lblSearch);
+
+            txtSearch = new TextBox
+            {
+                Location = new Point(105, 55),
+                Size = new Size(300, 25),
+                Font = new Font("Segoe UI", 10),
+                PlaceholderText = "Type GP name or date..."
+            };
+            txtSearch.TextChanged += TxtSearch_TextChanged;
+            this.Controls.Add(txtSearch);
+
             // DataGridView para mostrar os GPs
             dgvGPs = new DataGridView
             {
                 Name = "dgvGPs",
-                Location = new Point(20, 70),
-                Size = new Size(940, 450),
+                Location = new Point(20, 90),
+                Size = new Size(940, 430),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false,
                 ReadOnly = true,
@@ -279,6 +301,9 @@ namespace ProjetoFBD
         };
         dgvGPs.Columns.Add(seasonColumn);
         
+        // Guardar dados completos para filtro
+        gpDataTable = gpTable.Copy();
+        
         dgvGPs.DataSource = gpTable;
     }
     else if (dgvGPs != null)
@@ -468,6 +493,40 @@ namespace ProjetoFBD
             }
             
             LoadGPData();
+        }
+
+        private void TxtSearch_TextChanged(object? sender, EventArgs e)
+        {
+            if (txtSearch == null || gpDataTable == null || dgvGPs == null)
+                return;
+
+            string searchText = txtSearch.Text.Trim();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                // Mostrar todos os dados
+                dgvGPs.DataSource = gpDataTable;
+            }
+            else
+            {
+                // Filtrar dados por GP Name ou Race Date
+                try
+                {
+                    DataView dv = gpDataTable.DefaultView;
+                    // Escapar aspas simples para evitar erros de SQL injection
+                    string escapedSearch = searchText.Replace("'", "''");
+                    
+                    // Filtro que procura em Grand Prix Name e Race Date (convertido para string)
+                    dv.RowFilter = $"[Grand Prix Name] LIKE '%{escapedSearch}%' OR CONVERT([Race Date], 'System.String') LIKE '%{escapedSearch}%'";
+                    
+                    dgvGPs.DataSource = dv.ToTable();
+                }
+                catch
+                {
+                    // Se houver erro no filtro, mostrar todos os dados
+                    dgvGPs.DataSource = gpDataTable;
+                }
+            }
         }
     }
 }

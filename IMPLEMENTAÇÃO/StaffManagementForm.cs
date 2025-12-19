@@ -65,16 +65,16 @@ namespace ProjetoFBD
             pnlStaffActions = new Panel
             {
                 Location = new Point(20, 560),
-                Size = new Size(840, 50),
+                Size = new Size(725, 50),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Left
             };
             this.Controls.Add(pnlStaffActions);
 
             Button btnSave = CreateActionButton("Save Changes", new Point(0, 5));
-            Button btnAdd = CreateActionButton("Add Staff", new Point(140, 5));
-            Button btnDelete = CreateActionButton("Delete", new Point(270, 5));
-            Button btnRefresh = CreateActionButton("Refresh", new Point(380, 5));
-            Button btnViewContract = CreateActionButton("View Contract", new Point(500, 5), Color.FromArgb(0, 102, 204));
+            Button btnAdd = CreateActionButton("Add Staff", new Point(145, 5));
+            Button btnDelete = CreateActionButton("Delete", new Point(290, 5));
+            Button btnRefresh = CreateActionButton("Refresh", new Point(435, 5));
+            Button btnViewContract = CreateActionButton("View Contract", new Point(580, 5), Color.FromArgb(0, 102, 204));
 
             btnSave.Click += btnSave_Click;
             btnAdd.Click += btnAdd_Click;
@@ -385,17 +385,174 @@ namespace ProjetoFBD
                     SqlDataReader reader = cmd.ExecuteReader();
                     if (reader.Read())
                     {
-                        string details = $"Contract Details - {staffName}\n\n";
-                        details += $"Contract ID: {reader["ID_Contrato"]}\n";
-                        details += $"Start Year: {reader["AnoInicio"]}\n";
-                        details += $"End Year: {(reader["AnoFim"] == DBNull.Value ? "Ongoing" : reader["AnoFim"].ToString())}\n";
-                        details += $"Function: {reader["Função"]}\n";
-                        details += $"Salary: €{reader["Salário"]:N2}\n";
-                        details += $"Gender: {reader["Género"]}\n";
-                        details += $"Member Name: {reader["Nome"]}\n";
-                        details += $"Nationality: {reader["Nacionalidade"]}\n";
-                        
-                        MessageBox.Show(details, "Contract Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        // Criar um form customizado para mostrar os detalhes
+                        Form contractForm = new Form
+                        {
+                            Text = "Contract Details",
+                            Size = new Size(500, 500),
+                            StartPosition = FormStartPosition.CenterParent,
+                            FormBorderStyle = FormBorderStyle.FixedDialog,
+                            MaximizeBox = false,
+                            MinimizeBox = false,
+                            BackColor = Color.White
+                        };
+
+                        // Título
+                        Label lblTitle = new Label
+                        {
+                            Text = $"CONTRACT DETAILS",
+                            Location = new Point(20, 20),
+                            Size = new Size(440, 35),
+                            Font = new Font("Arial", 16, FontStyle.Bold),
+                            ForeColor = Color.FromArgb(220, 20, 20),
+                            TextAlign = ContentAlignment.MiddleCenter
+                        };
+                        contractForm.Controls.Add(lblTitle);
+
+                        // Nome do Staff
+                        Label lblStaffName = new Label
+                        {
+                            Text = staffName,
+                            Location = new Point(20, 60),
+                            Size = new Size(440, 25),
+                            Font = new Font("Arial", 12, FontStyle.Bold),
+                            ForeColor = Color.FromArgb(60, 60, 60),
+                            TextAlign = ContentAlignment.MiddleCenter
+                        };
+                        contractForm.Controls.Add(lblStaffName);
+
+                        // Painel com informações
+                        Panel infoPanel = new Panel
+                        {
+                            Location = new Point(20, 100),
+                            Size = new Size(440, 300),
+                            BorderStyle = BorderStyle.FixedSingle,
+                            BackColor = Color.FromArgb(250, 250, 250)
+                        };
+                        contractForm.Controls.Add(infoPanel);
+
+                        int yPos = 15;
+                        void AddInfoRow(string label, string value)
+                        {
+                            Label lbl = new Label
+                            {
+                                Text = label + ":",
+                                Location = new Point(20, yPos),
+                                Size = new Size(180, 22),
+                                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                                ForeColor = Color.FromArgb(80, 80, 80)
+                            };
+                            infoPanel.Controls.Add(lbl);
+
+                            Label val = new Label
+                            {
+                                Text = value,
+                                Location = new Point(210, yPos),
+                                Size = new Size(210, 22),
+                                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                                ForeColor = Color.FromArgb(40, 40, 40)
+                            };
+                            infoPanel.Controls.Add(val);
+
+                            yPos += 30;
+                        }
+
+                        // Guardar dados do contrato para edição
+                        int currentContractId = Convert.ToInt32(reader["ID_Contrato"]);
+                        int startYear = Convert.ToInt32(reader["AnoInicio"]);
+                        int? endYear = reader["AnoFim"] == DBNull.Value ? null : Convert.ToInt32(reader["AnoFim"]);
+                        string function = reader["Função"]?.ToString() ?? "";
+                        decimal salary = Convert.ToDecimal(reader["Salário"]);
+                        string gender = reader["Género"]?.ToString() ?? "";
+                        int memberId = Convert.ToInt32(reader["ID_Membro"]);
+
+                        AddInfoRow("Contract ID", reader["ID_Contrato"].ToString() ?? "");
+                        AddInfoRow("Start Year", reader["AnoInicio"].ToString() ?? "");
+                        AddInfoRow("End Year", reader["AnoFim"] == DBNull.Value ? "Ongoing" : reader["AnoFim"].ToString() ?? "");
+                        AddInfoRow("Function", reader["Função"]?.ToString() ?? "N/A");
+                        AddInfoRow("Salary", $"€{Convert.ToDecimal(reader["Salário"]):N2}");
+                        AddInfoRow("Gender", reader["Género"]?.ToString() ?? "N/A");
+                        AddInfoRow("Member Name", reader["Nome"].ToString() ?? "");
+                        AddInfoRow("Nationality", reader["Nacionalidade"].ToString() ?? "");
+
+                        reader.Close();
+
+                        // Botão Edit
+                        Button btnEdit = new Button
+                        {
+                            Text = "Edit",
+                            Location = new Point(130, 420),
+                            Size = new Size(100, 35),
+                            BackColor = Color.FromArgb(0, 153, 76),
+                            ForeColor = Color.White,
+                            FlatStyle = FlatStyle.Flat,
+                            Font = new Font("Segoe UI", 10, FontStyle.Bold)
+                        };
+                        btnEdit.FlatAppearance.BorderSize = 0;
+                        btnEdit.Click += (s, e) =>
+                        {
+                            contractForm.Hide();
+                            var editDialog = new EditContractDialog(currentContractId, startYear, endYear, function, salary, gender, memberId);
+                            if (editDialog.ShowDialog() == DialogResult.OK)
+                            {
+                                // Atualizar contrato na base de dados
+                                try
+                                {
+                                    using (SqlConnection updateConn = new SqlConnection(DbConfig.ConnectionString))
+                                    {
+                                        updateConn.Open();
+                                        string updateQuery = @"
+                                            UPDATE Contrato 
+                                            SET AnoInicio = @AnoInicio, 
+                                                AnoFim = @AnoFim, 
+                                                Função = @Funcao, 
+                                                Salário = @Salario, 
+                                                Género = @Genero
+                                            WHERE ID_Contrato = @ContractID";
+                                        
+                                        SqlCommand updateCmd = new SqlCommand(updateQuery, updateConn);
+                                        updateCmd.Parameters.AddWithValue("@AnoInicio", editDialog.StartYear);
+                                        updateCmd.Parameters.AddWithValue("@AnoFim", editDialog.EndYear.HasValue ? (object)editDialog.EndYear.Value : DBNull.Value);
+                                        updateCmd.Parameters.AddWithValue("@Funcao", editDialog.Function ?? (object)DBNull.Value);
+                                        updateCmd.Parameters.AddWithValue("@Salario", editDialog.Salary);
+                                        updateCmd.Parameters.AddWithValue("@Genero", editDialog.Gender ?? (object)DBNull.Value);
+                                        updateCmd.Parameters.AddWithValue("@ContractID", currentContractId);
+                                        
+                                        updateCmd.ExecuteNonQuery();
+                                        
+                                        MessageBox.Show("Contract updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                        contractForm.Close();
+                                        LoadStaffData();
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    MessageBox.Show($"Error updating contract: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
+                            }
+                            else
+                            {
+                                contractForm.Show();
+                            }
+                        };
+                        contractForm.Controls.Add(btnEdit);
+
+                        // Botão Close
+                        Button btnClose = new Button
+                        {
+                            Text = "Close",
+                            Location = new Point(250, 420),
+                            Size = new Size(100, 35),
+                            BackColor = Color.FromArgb(220, 20, 20),
+                            ForeColor = Color.White,
+                            FlatStyle = FlatStyle.Flat,
+                            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                            DialogResult = DialogResult.OK
+                        };
+                        btnClose.FlatAppearance.BorderSize = 0;
+                        contractForm.Controls.Add(btnClose);
+
+                        contractForm.ShowDialog();
                     }
                 }
             }
@@ -738,6 +895,179 @@ namespace ProjetoFBD
             {
                 return Name;
             }
+        }
+    }
+
+    // Dialog for editing contract
+    public class EditContractDialog : Form
+    {
+        private NumericUpDown nudStartYear = null!;
+        private NumericUpDown nudEndYear = null!;
+        private CheckBox chkOngoing = null!;
+        private TextBox txtFunction = null!;
+        private NumericUpDown nudSalary = null!;
+        private ComboBox cmbGender = null!;
+
+        public int StartYear { get; private set; }
+        public int? EndYear { get; private set; }
+        public string? Function { get; private set; }
+        public decimal Salary { get; private set; }
+        public string? Gender { get; private set; }
+
+        public EditContractDialog(int contractId, int startYear, int? endYear, string function, decimal salary, string gender, int memberId)
+        {
+            this.Text = "Edit Contract";
+            this.Size = new Size(450, 450);
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.BackColor = Color.White;
+
+            Label lblTitle = new Label
+            {
+                Text = "EDIT CONTRACT",
+                Location = new Point(20, 20),
+                Size = new Size(390, 30),
+                Font = new Font("Arial", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(220, 20, 20),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            this.Controls.Add(lblTitle);
+
+            int yPos = 70;
+
+            // Start Year
+            AddLabel("Start Year:", yPos);
+            nudStartYear = new NumericUpDown
+            {
+                Location = new Point(150, yPos),
+                Size = new Size(260, 25),
+                Minimum = 1950,
+                Maximum = 2100,
+                Value = startYear
+            };
+            this.Controls.Add(nudStartYear);
+            yPos += 40;
+
+            // End Year
+            AddLabel("End Year:", yPos);
+            nudEndYear = new NumericUpDown
+            {
+                Location = new Point(150, yPos),
+                Size = new Size(180, 25),
+                Minimum = 1950,
+                Maximum = 2100,
+                Value = endYear ?? DateTime.Now.Year,
+                Enabled = endYear.HasValue
+            };
+            this.Controls.Add(nudEndYear);
+
+            chkOngoing = new CheckBox
+            {
+                Text = "Ongoing",
+                Location = new Point(340, yPos),
+                Size = new Size(80, 25),
+                Checked = !endYear.HasValue
+            };
+            chkOngoing.CheckedChanged += (s, e) =>
+            {
+                nudEndYear.Enabled = !chkOngoing.Checked;
+            };
+            this.Controls.Add(chkOngoing);
+            yPos += 40;
+
+            // Function
+            AddLabel("Function:", yPos);
+            txtFunction = new TextBox
+            {
+                Location = new Point(150, yPos),
+                Size = new Size(260, 25),
+                Text = function
+            };
+            this.Controls.Add(txtFunction);
+            yPos += 40;
+
+            // Salary
+            AddLabel("Salary (€):", yPos);
+            nudSalary = new NumericUpDown
+            {
+                Location = new Point(150, yPos),
+                Size = new Size(260, 25),
+                Minimum = 0,
+                Maximum = 100000000,
+                DecimalPlaces = 2,
+                Value = salary,
+                ThousandsSeparator = true
+            };
+            this.Controls.Add(nudSalary);
+            yPos += 40;
+
+            // Gender
+            AddLabel("Gender:", yPos);
+            cmbGender = new ComboBox
+            {
+                Location = new Point(150, yPos),
+                Size = new Size(260, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            cmbGender.Items.AddRange(new object[] { "M", "F" });
+            if (!string.IsNullOrEmpty(gender))
+                cmbGender.SelectedItem = gender;
+            this.Controls.Add(cmbGender);
+            yPos += 50;
+
+            // Buttons
+            Button btnSave = new Button
+            {
+                Text = "Save",
+                Location = new Point(130, yPos),
+                Size = new Size(100, 35),
+                BackColor = Color.FromArgb(0, 153, 76),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            btnSave.FlatAppearance.BorderSize = 0;
+            btnSave.Click += (s, e) =>
+            {
+                StartYear = (int)nudStartYear.Value;
+                EndYear = chkOngoing.Checked ? null : (int?)nudEndYear.Value;
+                Function = txtFunction.Text;
+                Salary = nudSalary.Value;
+                Gender = cmbGender.SelectedItem?.ToString();
+                
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            };
+            this.Controls.Add(btnSave);
+
+            Button btnCancel = new Button
+            {
+                Text = "Cancel",
+                Location = new Point(240, yPos),
+                Size = new Size(100, 35),
+                BackColor = Color.Gray,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                DialogResult = DialogResult.Cancel
+            };
+            btnCancel.FlatAppearance.BorderSize = 0;
+            this.Controls.Add(btnCancel);
+        }
+
+        private void AddLabel(string text, int y)
+        {
+            Label lbl = new Label
+            {
+                Text = text,
+                Location = new Point(20, y + 3),
+                Size = new Size(120, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = Color.FromArgb(60, 60, 60)
+            };
+            this.Controls.Add(lbl);
         }
     }
 }

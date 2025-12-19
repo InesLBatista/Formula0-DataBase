@@ -30,10 +30,8 @@ namespace ProjetoFBD
             LoadSessionData();
         }
 
-        // -------------------------------------------------------------------------
         // UI SETUP
-        // -------------------------------------------------------------------------
-
+        
         private void SetupLayout()
         {
             Label lblTitle = new Label

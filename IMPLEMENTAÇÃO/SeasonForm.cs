@@ -31,6 +31,7 @@ namespace ProjetoFBD
             this.Text = "Seasons Management";
             this.Size = new Size(1600, 750);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = Color.FromArgb(246, 246, 248);
 
             SetupSeasonsLayout();
             LoadSeasonData();
@@ -50,8 +51,25 @@ namespace ProjetoFBD
                 Size = new Size(600, 480),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left,
                 AllowUserToAddRows = false,
-                ReadOnly = true 
+                ReadOnly = true,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.None,
+                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
+                GridColor = Color.FromArgb(230, 230, 230),
+                RowHeadersVisible = true,
+                EnableHeadersVisualStyles = false
             };
+            dgvSeasons.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(204, 0, 0);
+            dgvSeasons.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvSeasons.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            dgvSeasons.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvSeasons.RowHeadersWidth = 32;
+            dgvSeasons.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvSeasons.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            dgvSeasons.DefaultCellStyle.SelectionBackColor = Color.FromArgb(255, 235, 235);
+            dgvSeasons.DefaultCellStyle.SelectionForeColor = Color.Black;
+            dgvSeasons.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 248, 248);
+            dgvSeasons.RowTemplate.Height = 28;
             this.Controls.Add(dgvSeasons);
             
             // Evento de seleção mudou para atualizar pódios
@@ -212,7 +230,9 @@ namespace ProjetoFBD
             {
                 Location = new Point(10, 500),
                 Size = new Size(850, 50),
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
+                BackColor = Color.WhiteSmoke,
+                BorderStyle = BorderStyle.FixedSingle
             };
             this.Controls.Add(pnlStaffActions);
             
@@ -294,17 +314,43 @@ namespace ProjetoFBD
         {
             string connectionString = DbConfig.ConnectionString;
             
-            // Query que busca os dados da temporada E calcula o número de GPs
+            // Query com contagem de GPs e líderes atuais (piloto e equipa)
             string query = @"
                 SELECT 
                     t.Ano,
-                    ISNULL(gp.GPCount, 0) as NumCorridas
+                    ISNULL(gp.GPCount, 0) AS NumCorridas,
+                    ld.DriverName AS LeaderDriver,
+                    lt.TeamName AS LeaderTeam
                 FROM Temporada t
                 LEFT JOIN (
-                    SELECT Ano_Temporada, COUNT(*) as GPCount
+                    SELECT Ano_Temporada, COUNT(*) AS GPCount
                     FROM Grande_Prémio
                     GROUP BY Ano_Temporada
                 ) gp ON t.Ano = gp.Ano_Temporada
+                OUTER APPLY (
+                    SELECT TOP 1
+                        m.Nome AS DriverName,
+                        SUM(r.Pontos) AS TotalPoints
+                    FROM Grande_Prémio gp2
+                    INNER JOIN Resultados r ON r.NomeGP = gp2.NomeGP
+                    INNER JOIN Piloto p ON r.ID_Piloto = p.ID_Piloto
+                    INNER JOIN Membros_da_Equipa m ON p.ID_Membro = m.ID_Membro
+                    WHERE gp2.Ano_Temporada = t.Ano AND r.NomeSessão = 'Race'
+                    GROUP BY m.Nome, p.NumeroPermanente
+                    ORDER BY TotalPoints DESC, p.NumeroPermanente ASC
+                ) ld
+                OUTER APPLY (
+                    SELECT TOP 1
+                        e.Nome AS TeamName,
+                        SUM(r.Pontos) AS TotalPoints
+                    FROM Grande_Prémio gp3
+                    INNER JOIN Resultados r ON r.NomeGP = gp3.NomeGP
+                    INNER JOIN Piloto p ON r.ID_Piloto = p.ID_Piloto
+                    INNER JOIN Equipa e ON p.ID_Equipa = e.ID_Equipa
+                    WHERE gp3.Ano_Temporada = t.Ano AND r.NomeSessão = 'Race'
+                    GROUP BY e.Nome
+                    ORDER BY TotalPoints DESC, e.Nome ASC
+                ) lt
                 ORDER BY t.Ano DESC";
 
             try
@@ -331,6 +377,8 @@ namespace ProjetoFBD
                     {
                         dgvSeasons.Columns["Ano"]!.HeaderText = "Year";
                         dgvSeasons.Columns["Ano"]!.ReadOnly = true;
+                        dgvSeasons.Columns["Ano"]!.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                        dgvSeasons.Columns["Ano"]!.FillWeight = 90;
                     }
                     if (dgvSeasons.Columns.Contains("NumCorridas"))
                     {
@@ -338,6 +386,22 @@ namespace ProjetoFBD
                         dgvSeasons.Columns["NumCorridas"]!.ReadOnly = true;
                         dgvSeasons.Columns["NumCorridas"]!.DefaultCellStyle.Format = "N0";
                         dgvSeasons.Columns["NumCorridas"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                        dgvSeasons.Columns["NumCorridas"]!.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                        dgvSeasons.Columns["NumCorridas"]!.FillWeight = 90;
+                    }
+                    if (dgvSeasons.Columns.Contains("LeaderDriver"))
+                    {
+                        dgvSeasons.Columns["LeaderDriver"]!.HeaderText = "Current Driver Leader";
+                        dgvSeasons.Columns["LeaderDriver"]!.ReadOnly = true;
+                        dgvSeasons.Columns["LeaderDriver"]!.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                        dgvSeasons.Columns["LeaderDriver"]!.FillWeight = 140;
+                    }
+                    if (dgvSeasons.Columns.Contains("LeaderTeam"))
+                    {
+                        dgvSeasons.Columns["LeaderTeam"]!.HeaderText = "Current Team Leader";
+                        dgvSeasons.Columns["LeaderTeam"]!.ReadOnly = true;
+                        dgvSeasons.Columns["LeaderTeam"]!.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                        dgvSeasons.Columns["LeaderTeam"]!.FillWeight = 130;
                     }
                     
                     // Adicionar validação de célula
@@ -1024,6 +1088,10 @@ namespace ProjetoFBD
         private TabControl? tabControl;
         private DataGridView? dgvDriverStandings;
         private DataGridView? dgvTeamStandings;
+        private TextBox? txtDriverSearch;
+        private TextBox? txtTeamSearch;
+        private DataTable? driverStandingsData;
+        private DataTable? teamStandingsData;
         private int year;
 
         public StandingsViewerDialog(int year)
@@ -1059,10 +1127,31 @@ namespace ProjetoFBD
 
             // Driver Standings Tab
             TabPage driverTab = new TabPage("Driver Standings");
+            
+            // Search box for drivers
+            Label lblDriverSearch = new Label
+            {
+                Text = "Search Driver:",
+                Location = new Point(10, 10),
+                Size = new Size(100, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular)
+            };
+            driverTab.Controls.Add(lblDriverSearch);
+            
+            txtDriverSearch = new TextBox
+            {
+                Location = new Point(115, 8),
+                Size = new Size(300, 25),
+                Font = new Font("Segoe UI", 10),
+                PlaceholderText = "Type driver name or team..."
+            };
+            txtDriverSearch.TextChanged += TxtDriverSearch_TextChanged;
+            driverTab.Controls.Add(txtDriverSearch);
+            
             dgvDriverStandings = new DataGridView
             {
-                Location = new Point(10, 10),
-                Size = new Size(910, 400),
+                Location = new Point(10, 45),
+                Size = new Size(910, 365),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false,
                 ReadOnly = true,
@@ -1076,10 +1165,31 @@ namespace ProjetoFBD
 
             // Team Standings Tab
             TabPage teamTab = new TabPage("Team Standings");
+            
+            // Search box for teams
+            Label lblTeamSearch = new Label
+            {
+                Text = "Search Team:",
+                Location = new Point(10, 10),
+                Size = new Size(100, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular)
+            };
+            teamTab.Controls.Add(lblTeamSearch);
+            
+            txtTeamSearch = new TextBox
+            {
+                Location = new Point(115, 8),
+                Size = new Size(300, 25),
+                Font = new Font("Segoe UI", 10),
+                PlaceholderText = "Type team name..."
+            };
+            txtTeamSearch.TextChanged += TxtTeamSearch_TextChanged;
+            teamTab.Controls.Add(txtTeamSearch);
+            
             dgvTeamStandings = new DataGridView
             {
-                Location = new Point(10, 10),
-                Size = new Size(910, 400),
+                Location = new Point(10, 45),
+                Size = new Size(910, 365),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false,
                 ReadOnly = true,
@@ -1120,7 +1230,15 @@ namespace ProjetoFBD
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(DbConfig.ConnectionString))
+                string connectionString = DbConfig.ConnectionString;
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    MessageBox.Show("Connection string is not configured.", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
                     string query = @"
@@ -1141,35 +1259,50 @@ namespace ProjetoFBD
                         HAVING ISNULL(SUM(r.Pontos), 0) > 0
                         ORDER BY TotalPoints DESC, Wins DESC";
                     
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@Year", year);
-                    
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    DataTable table = new DataTable();
-                    adapter.Fill(table);
-                    
-                    dgvDriverStandings.DataSource = table;
-                    
-                    dgvDriverStandings.Refresh();
-                    Application.DoEvents();
-
-                    if (dgvDriverStandings.Columns != null)
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        if (dgvDriverStandings.Columns.Contains("Position") && dgvDriverStandings.Columns["Position"] != null)
-                            dgvDriverStandings.Columns["Position"]!.Width = 60;
-                        if (dgvDriverStandings.Columns.Contains("TotalPoints") && dgvDriverStandings.Columns["TotalPoints"] != null)
-                            dgvDriverStandings.Columns["TotalPoints"]!.HeaderText = "Points";
-                        if (dgvDriverStandings.Columns.Contains("Wins") && dgvDriverStandings.Columns["Wins"] != null)
-                            dgvDriverStandings.Columns["Wins"]!.Width = 60;
-                        if (dgvDriverStandings.Columns.Contains("Podiums") && dgvDriverStandings.Columns["Podiums"] != null)
-                            dgvDriverStandings.Columns["Podiums"]!.Width = 80;
+                        cmd.Parameters.AddWithValue("@Year", year);
+                        
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                        {
+                            DataTable table = new DataTable();
+                            adapter.Fill(table);
+                            
+                            // Guardar os dados completos para filtro
+                            driverStandingsData = table.Copy();
+                            
+                            if (dgvDriverStandings != null)
+                            {
+                                dgvDriverStandings.DataSource = null;
+                                dgvDriverStandings.DataSource = table;
+                                
+                                dgvDriverStandings.Refresh();
+                                Application.DoEvents();
+
+                                // Alterar cabeçalho de coluna apenas (não Width, pois causa erro)
+                                if (dgvDriverStandings.Columns != null && dgvDriverStandings.Columns.Count > 0)
+                                {
+                                    try
+                                    {
+                                        if (dgvDriverStandings.Columns.Contains("TotalPoints") && dgvDriverStandings.Columns["TotalPoints"] != null)
+                                            dgvDriverStandings.Columns["TotalPoints"]!.HeaderText = "Points";
+                                    }
+                                    catch { /* Ignorar erros de formatação de colunas */ }
+                                }
+                            }
+                        }
                     }
                 }
             }
+            catch (SqlException sqlEx)
+            {
+                MessageBox.Show($"Database error loading driver standings:\n{sqlEx.Message}\n\nStack trace:\n{sqlEx.StackTrace}", 
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading driver standings: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading driver standings:\n{ex.Message}\n\nStack trace:\n{ex.StackTrace}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -1179,7 +1312,15 @@ namespace ProjetoFBD
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(DbConfig.ConnectionString))
+                string connectionString = DbConfig.ConnectionString;
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    MessageBox.Show("Connection string is not configured.", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
                     string query = @"
@@ -1198,35 +1339,92 @@ namespace ProjetoFBD
                         HAVING ISNULL(SUM(r.Pontos), 0) > 0
                         ORDER BY TotalPoints DESC, Wins DESC";
                     
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@Year", year);
-                    
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    DataTable table = new DataTable();
-                    adapter.Fill(table);
-                    
-                    dgvTeamStandings.DataSource = table;
-                    
-                    dgvTeamStandings.Refresh();
-                    Application.DoEvents();
-
-                    if (dgvTeamStandings.Columns != null)
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        if (dgvTeamStandings.Columns.Contains("Position") && dgvTeamStandings.Columns["Position"] != null)
-                            dgvTeamStandings.Columns["Position"]!.Width = 60;
-                        if (dgvTeamStandings.Columns.Contains("TotalPoints") && dgvTeamStandings.Columns["TotalPoints"] != null)
-                            dgvTeamStandings.Columns["TotalPoints"]!.HeaderText = "Points";
-                        if (dgvTeamStandings.Columns.Contains("Wins") && dgvTeamStandings.Columns["Wins"] != null)
-                            dgvTeamStandings.Columns["Wins"]!.Width = 60;
-                        if (dgvTeamStandings.Columns.Contains("Podiums") && dgvTeamStandings.Columns["Podiums"] != null)
-                            dgvTeamStandings.Columns["Podiums"]!.Width = 80;
+                        cmd.Parameters.AddWithValue("@Year", year);
+                        
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                        {
+                            DataTable table = new DataTable();
+                            adapter.Fill(table);
+                            
+                            // Guardar os dados completos para filtro
+                            teamStandingsData = table.Copy();
+                            
+                            if (dgvTeamStandings != null)
+                            {
+                                dgvTeamStandings.DataSource = null;
+                                dgvTeamStandings.DataSource = table;
+                                
+                                dgvTeamStandings.Refresh();
+                                Application.DoEvents();
+
+                                // Alterar cabeçalho de coluna apenas (não Width, pois causa erro)
+                                if (dgvTeamStandings.Columns != null && dgvTeamStandings.Columns.Count > 0)
+                                {
+                                    try
+                                    {
+                                        if (dgvTeamStandings.Columns.Contains("TotalPoints") && dgvTeamStandings.Columns["TotalPoints"] != null)
+                                            dgvTeamStandings.Columns["TotalPoints"]!.HeaderText = "Points";
+                                    }
+                                    catch { /* Ignorar erros de formatação de colunas */ }
+                                }
+                            }
+                        }
                     }
                 }
             }
+            catch (SqlException sqlEx)
+            {
+                MessageBox.Show($"Database error loading team standings:\n{sqlEx.Message}\n\nStack trace:\n{sqlEx.StackTrace}", 
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading team standings: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading team standings:\n{ex.Message}\n\nStack trace:\n{ex.StackTrace}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void TxtDriverSearch_TextChanged(object? sender, EventArgs e)
+        {
+            if (txtDriverSearch == null || driverStandingsData == null || dgvDriverStandings == null)
+                return;
+
+            string searchText = txtDriverSearch.Text.Trim().ToLower();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                // Mostrar todos os dados
+                dgvDriverStandings.DataSource = driverStandingsData;
+            }
+            else
+            {
+                // Filtrar dados
+                DataView dv = driverStandingsData.DefaultView;
+                dv.RowFilter = $"Driver LIKE '%{searchText.Replace("'", "''")}%' OR Team LIKE '%{searchText.Replace("'", "''")}%'";
+                dgvDriverStandings.DataSource = dv.ToTable();
+            }
+        }
+
+        private void TxtTeamSearch_TextChanged(object? sender, EventArgs e)
+        {
+            if (txtTeamSearch == null || teamStandingsData == null || dgvTeamStandings == null)
+                return;
+
+            string searchText = txtTeamSearch.Text.Trim().ToLower();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                // Mostrar todos os dados
+                dgvTeamStandings.DataSource = teamStandingsData;
+            }
+            else
+            {
+                // Filtrar dados
+                DataView dv = teamStandingsData.DefaultView;
+                dv.RowFilter = $"Team LIKE '%{searchText.Replace("'", "''")}%'";
+                dgvTeamStandings.DataSource = dv.ToTable();
             }
         }
     }

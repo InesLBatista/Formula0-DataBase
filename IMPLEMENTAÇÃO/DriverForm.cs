@@ -13,6 +13,8 @@ namespace ProjetoFBD
         private DataGridView? dgvDrivers;
         private Panel? pnlStaffActions;
         private Chart? chartDriverPoints;
+        private TextBox? txtSearch;
+        private DataTable? driverDataComplete;
         
         private string userRole;
         private SqlDataAdapter? dataAdapter;
@@ -33,13 +35,8 @@ namespace ProjetoFBD
             LoadDriverPointsChart();
         }
 
-        // -------------------------------------------------------------------------
-        // UI SETUP
-        // -------------------------------------------------------------------------
-
         private void SetupLayout()
         {
-            // Título
             Label lblTitle = new Label
             {
                 Text = "Drivers Management",
@@ -50,12 +47,32 @@ namespace ProjetoFBD
             };
             this.Controls.Add(lblTitle);
 
-            // DataGridView para listar pilotos
+            // Search bar
+            Label lblSearch = new Label
+            {
+                Text = "Search Driver:",
+                Location = new Point(20, 58),
+                Size = new Size(100, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular)
+            };
+            this.Controls.Add(lblSearch);
+
+            txtSearch = new TextBox
+            {
+                Location = new Point(125, 55),
+                Size = new Size(300, 25),
+                Font = new Font("Segoe UI", 10),
+                PlaceholderText = "Type driver name, number, team..."
+            };
+            txtSearch.TextChanged += TxtSearch_TextChanged;
+            this.Controls.Add(txtSearch);
+
+            // DataGridView for listing drivers
             dgvDrivers = new DataGridView
             {
                 Name = "dgvDrivers",
-                Location = new Point(20, 70),
-                Size = new Size(750, 480),
+                Location = new Point(20, 90),
+                Size = new Size(750, 460),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left,
                 AllowUserToAddRows = false,
                 ReadOnly = false,
@@ -63,14 +80,19 @@ namespace ProjetoFBD
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 RowHeadersVisible = false
             };
+            
+            // Centralizar 
+            dgvDrivers.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvDrivers.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            
             this.Controls.Add(dgvDrivers);
 
             // Chart para pontos dos pilotos
             chartDriverPoints = new Chart
             {
                 Name = "chartDriverPoints",
-                Location = new Point(790, 70),
-                Size = new Size(580, 480),
+                Location = new Point(790, 90),
+                Size = new Size(580, 460),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
                 BackColor = Color.White
             };
@@ -94,7 +116,6 @@ namespace ProjetoFBD
             };
             chartDriverPoints.ChartAreas.Add(chartArea);
 
-            // Configurar Series
             Series series = new Series
             {
                 Name = "Points",
@@ -105,7 +126,6 @@ namespace ProjetoFBD
             };
             chartDriverPoints.Series.Add(series);
 
-            // Título do gráfico
             Title chartTitle = new Title
             {
                 Text = "Driver Career Points",
@@ -116,27 +136,24 @@ namespace ProjetoFBD
 
             this.Controls.Add(chartDriverPoints);
 
-            // Painel de ações
             pnlStaffActions = new Panel
             {
                 Location = new Point(20, 570),
-                Size = new Size(840, 50),
+                Size = new Size(870, 50),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Left
             };
             this.Controls.Add(pnlStaffActions);
 
             // Criar Botões
             Button btnSave = CreateActionButton("Save Changes", new Point(0, 5));
-            Button btnAdd = CreateActionButton("Add New", new Point(140, 5));
-            Button btnDelete = CreateActionButton("Delete Selected", new Point(280, 5));
-            Button btnEdit = CreateActionButton("Edit", new Point(420, 5));
-            Button btnRefresh = CreateActionButton("Refresh", new Point(560, 5));
-            Button btnViewResults = CreateActionButton("View Results", new Point(700, 5));
+            Button btnAdd = CreateActionButton("Add New", new Point(145, 5));
+            Button btnDelete = CreateActionButton("Delete Selected", new Point(290, 5));
+            Button btnEdit = CreateActionButton("Edit", new Point(435, 5));
+            Button btnRefresh = CreateActionButton("Refresh", new Point(580, 5));
+            Button btnViewResults = CreateActionButton("View Results", new Point(725, 5));
 
-            // Style special button
             btnViewResults.BackColor = Color.FromArgb(0, 153, 76);
 
-            // Ligar Eventos
             btnSave.Click += btnSave_Click;
             btnAdd.Click += btnAdd_Click;
             btnDelete.Click += btnDelete_Click;
@@ -184,27 +201,12 @@ namespace ProjetoFBD
             return btn;
         }
 
-        // -------------------------------------------------------------------------
-        // DATA ACCESS METHODS (CRUD)
-        // -------------------------------------------------------------------------
-
         private void LoadDriverData()
         {
             string connectionString = DbConfig.ConnectionString;
-            
-            string query = @"
-                SELECT 
-                    p.ID_Piloto,
-                    p.NumeroPermanente,
-                    p.Abreviação,
-                    p.ID_Equipa,
-                    e.Nome AS TeamName,
-                    p.ID_Membro,
-                    m.Nome AS DriverName
-                FROM Piloto p
-                LEFT JOIN Equipa e ON p.ID_Equipa = e.ID_Equipa
-                LEFT JOIN Membros_da_Equipa m ON p.ID_Membro = m.ID_Membro
-                ORDER BY p.NumeroPermanente ASC";
+
+            // Use the view for driver details
+            string query = "SELECT * FROM vw_DriverDetails ORDER BY NumeroPermanente ASC;";
 
             try
             {
@@ -213,6 +215,9 @@ namespace ProjetoFBD
                 driverTable = new DataTable();
                 
                 dataAdapter.Fill(driverTable);
+                
+                // Guardar cópia dos dados completos para filtro
+                driverDataComplete = driverTable.Copy();
                 
                 if (dgvDrivers != null)
                 {
@@ -489,23 +494,27 @@ namespace ProjetoFBD
                             MessageBoxIcon.Question);
                         gender = genderResult == DialogResult.Yes ? "M" : "F";
                         
-                        // Insert new member into database
+                        // Insert new member using stored procedure
                         using (SqlConnection connection = new SqlConnection(DbConfig.ConnectionString))
                         {
                             connection.Open();
-                            SqlCommand insertCmd = new SqlCommand(
-                                @"INSERT INTO Membros_da_Equipa (Nome, Nacionalidade, DataNascimento, Género, Função, ID_Equipa)
-                                  OUTPUT INSERTED.ID_Membro
-                                  VALUES (@Nome, @Nacionalidade, @DataNascimento, @Genero, 'Driver', @ID_Equipa)",
-                                connection);
-                            
+                            SqlCommand insertCmd = new SqlCommand("sp_InsertTeamMember", connection);
+                            insertCmd.CommandType = CommandType.StoredProcedure;
+
                             insertCmd.Parameters.AddWithValue("@Nome", driverName);
                             insertCmd.Parameters.AddWithValue("@Nacionalidade", nationality);
                             insertCmd.Parameters.AddWithValue("@DataNascimento", birthDate);
                             insertCmd.Parameters.AddWithValue("@Genero", gender);
                             insertCmd.Parameters.AddWithValue("@ID_Equipa", selectedTeamId);
-                            
-                            int newMemberId = (int)insertCmd.ExecuteScalar();
+
+                            SqlParameter outputIdParam = new SqlParameter("@ID_Membro", SqlDbType.Int)
+                            {
+                                Direction = ParameterDirection.Output
+                            };
+                            insertCmd.Parameters.Add(outputIdParam);
+
+                            insertCmd.ExecuteNonQuery();
+                            int newMemberId = (int)outputIdParam.Value;
                             newRow["ID_Membro"] = newMemberId;
                             newRow["DriverName"] = driverName;
                         }
@@ -545,8 +554,7 @@ namespace ProjetoFBD
                                     "No Members", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 return;
                             }
-                            
-                            // Show selection dialog
+
                             string selected = Microsoft.VisualBasic.Interaction.InputBox(
                                 "Select member:\n\n" + string.Join("\n", members.Select((m, i) => $"{i + 1}. {m.Display}")),
                                 "Select Team Member",
@@ -565,20 +573,16 @@ namespace ProjetoFBD
                     }
                     else
                     {
-                        // Cancel - no member info
                         newRow["ID_Membro"] = DBNull.Value;
                         newRow["DriverName"] = DBNull.Value;
                     }
-                    
-                    // Set TeamName to empty for now (will be populated on save/refresh)
+
                     if (!newRow.Table.Columns.Contains("TeamName") || newRow["ID_Membro"] == DBNull.Value)
                     {
                         newRow["TeamName"] = DBNull.Value;
                     }
                     
                     driverTable.Rows.Add(newRow);
-
-                    // Focus on new row
                     if (dgvDrivers != null && dgvDrivers.Rows.Count > 0)
                     {
                         dgvDrivers.CurrentCell = dgvDrivers.Rows[dgvDrivers.Rows.Count - 1].Cells[1];
@@ -632,7 +636,6 @@ namespace ProjetoFBD
         {
             if (dgvDrivers != null && dgvDrivers.SelectedRows.Count > 0)
             {
-                // Focar na primeira célula editável (pula o ID)
                 int editableColumn = dgvDrivers.Columns["NumeroPermanente"]?.Index ?? 1;
                 dgvDrivers.CurrentCell = dgvDrivers.SelectedRows[0].Cells[editableColumn];
                 dgvDrivers.BeginEdit(true);
@@ -669,19 +672,8 @@ namespace ProjetoFBD
 
             string connectionString = DbConfig.ConnectionString;
             
-            // Query para calcular os pontos totais de cada piloto
-            string query = @"
-                SELECT TOP 15
-                    p.Abreviação,
-                    m.Nome AS DriverName,
-                    e.Nome AS TeamName,
-                    ISNULL(SUM(r.Pontos), 0) AS TotalPoints
-                FROM Piloto p
-                INNER JOIN Membros_da_Equipa m ON p.ID_Membro = m.ID_Membro
-                LEFT JOIN Equipa e ON p.ID_Equipa = e.ID_Equipa
-                LEFT JOIN Resultados r ON p.ID_Piloto = r.ID_Piloto
-                GROUP BY p.Abreviação, m.Nome, p.NumeroPermanente, e.Nome
-                ORDER BY TotalPoints DESC, p.NumeroPermanente ASC";
+            // Use the view for driver points
+            string query = "SELECT * FROM vw_DriverPoints;";
 
             try
             {
@@ -693,25 +685,24 @@ namespace ProjetoFBD
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             chartDriverPoints.Series["Points"].Points.Clear();
-                            
-                            // Paleta de cores vibrantes
+
                             Color[] colors = new Color[]
                             {
-                                Color.FromArgb(255, 215, 0),    // Ouro - 1º lugar
-                                Color.FromArgb(192, 192, 192),  // Prata - 2º lugar
-                                Color.FromArgb(205, 127, 50),   // Bronze - 3º lugar
-                                Color.FromArgb(220, 20, 60),    // Crimson
-                                Color.FromArgb(30, 144, 255),   // Dodger Blue
-                                Color.FromArgb(50, 205, 50),    // Lime Green
-                                Color.FromArgb(255, 140, 0),    // Dark Orange
-                                Color.FromArgb(138, 43, 226),   // Blue Violet
-                                Color.FromArgb(255, 20, 147),   // Deep Pink
-                                Color.FromArgb(0, 191, 255),    // Deep Sky Blue
-                                Color.FromArgb(255, 69, 0),     // Orange Red
-                                Color.FromArgb(34, 139, 34),    // Forest Green
-                                Color.FromArgb(220, 20, 20),    // F1 Red
-                                Color.FromArgb(128, 0, 128),    // Purple
-                                Color.FromArgb(0, 128, 128)     // Teal
+                                Color.FromArgb(255, 215, 0),   
+                                Color.FromArgb(192, 192, 192),  
+                                Color.FromArgb(205, 127, 50),   
+                                Color.FromArgb(220, 20, 60),    
+                                Color.FromArgb(30, 144, 255),   
+                                Color.FromArgb(50, 205, 50),    
+                                Color.FromArgb(255, 140, 0),   
+                                Color.FromArgb(138, 43, 226),   
+                                Color.FromArgb(255, 20, 147),   
+                                Color.FromArgb(0, 191, 255),    
+                                Color.FromArgb(255, 69, 0),     
+                                Color.FromArgb(34, 139, 34),    
+                                Color.FromArgb(220, 20, 20),    
+                                Color.FromArgb(128, 0, 128),    
+                                Color.FromArgb(0, 128, 128)     
                             };
                             
                             int index = 0;
@@ -721,22 +712,18 @@ namespace ProjetoFBD
                                 string driverName = reader["DriverName"].ToString() ?? "Unknown";
                                 string teamName = reader["TeamName"].ToString() ?? "No Team";
                                 int totalPoints = Convert.ToInt32(reader["TotalPoints"]);
-                                
-                                // Adicionar ponto ao gráfico
+
                                 int pointIndex = chartDriverPoints.Series["Points"].Points.AddXY(abbreviation, totalPoints);
                                 
-                                // Aplicar cor da paleta
                                 chartDriverPoints.Series["Points"].Points[pointIndex].Color = colors[index % colors.Length];
-                                
-                                // Tooltip detalhado
+
                                 chartDriverPoints.Series["Points"].Points[pointIndex].ToolTip = 
                                     $"#{index + 1} {driverName}\n{teamName}\n{totalPoints} points";
                                 
-                                // Label customizado
+                                // Label 
                                 chartDriverPoints.Series["Points"].Points[pointIndex].Label = totalPoints.ToString();
                                 chartDriverPoints.Series["Points"].Points[pointIndex].Font = new Font("Arial", 9, FontStyle.Bold);
                                 
-                                // Efeito de destaque nos top 3
                                 if (index < 3)
                                 {
                                     chartDriverPoints.Series["Points"].Points[pointIndex].BorderWidth = 3;
@@ -749,7 +736,6 @@ namespace ProjetoFBD
                     }
                 }
                 
-                // Aplicar efeitos visuais 3D
                 if (chartDriverPoints.ChartAreas.Count > 0)
                 {
                     chartDriverPoints.ChartAreas[0].Area3DStyle.Enable3D = true;
@@ -760,13 +746,11 @@ namespace ProjetoFBD
                     chartDriverPoints.ChartAreas[0].BackColor = Color.FromArgb(245, 245, 245);
                     chartDriverPoints.ChartAreas[0].BackSecondaryColor = Color.White;
                     
-                    // Grid melhorado
                     chartDriverPoints.ChartAreas[0].AxisX.MajorGrid.LineColor = Color.FromArgb(200, 200, 200);
                     chartDriverPoints.ChartAreas[0].AxisY.MajorGrid.LineColor = Color.FromArgb(200, 200, 200);
                     chartDriverPoints.ChartAreas[0].AxisY.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
                 }
-                
-                // Adicionar legenda
+
                 if (chartDriverPoints.Legends.Count == 0)
                 {
                     Legend legend = new Legend
@@ -780,7 +764,6 @@ namespace ProjetoFBD
                     chartDriverPoints.Legends.Add(legend);
                 }
                 
-                // Interatividade - Clique no gráfico
                 chartDriverPoints.Click -= ChartDriverPoints_Click;
                 chartDriverPoints.Click += ChartDriverPoints_Click;
             }
@@ -1012,6 +995,43 @@ namespace ProjetoFBD
             {
                 MessageBox.Show("Please select a driver first.", "No Selection",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void TxtSearch_TextChanged(object? sender, EventArgs e)
+        {
+            if (txtSearch == null || driverDataComplete == null || dgvDrivers == null)
+                return;
+
+            string searchText = txtSearch.Text.Trim();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                // Mostrar todos os dados
+                dgvDrivers.DataSource = driverDataComplete;
+            }
+            else
+            {
+                // Filtrar dados
+                try
+                {
+                    DataView dv = new DataView(driverDataComplete);
+                    string escapedSearch = searchText.Replace("'", "''");
+                    
+                    // Filtro que procura em DriverName, NumeroPermanente, Abreviação e TeamName
+                    dv.RowFilter = $"DriverName LIKE '%{escapedSearch}%' OR " +
+                                  $"CONVERT(NumeroPermanente, 'System.String') LIKE '%{escapedSearch}%' OR " +
+                                  $"Abreviação LIKE '%{escapedSearch}%' OR " +
+                                  $"TeamName LIKE '%{escapedSearch}%'";
+                    
+                    dgvDrivers.DataSource = dv.ToTable();
+                }
+                catch (Exception ex)
+                {
+                    // Se houver erro no filtro, mostrar todos os dados
+                    Console.WriteLine($"Filter error: {ex.Message}");
+                    dgvDrivers.DataSource = driverDataComplete;
+                }
             }
         }
     }

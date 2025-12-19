@@ -16,50 +16,6 @@ namespace ProjetoFBD
         private SqlDataAdapter? dataAdapter; // Adaptador SQL
         private DataTable? circuitoTable;    // Tabela em memória
 
-        // Bandeiras por país (emoji)
-        private static readonly Dictionary<string, string> CountryFlags = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "Portugal", "🇵🇹" },
-            { "Spain", "🇪🇸" }, { "Espanha", "🇪🇸" },
-            { "Italy", "🇮🇹" }, { "Itália", "🇮🇹" },
-            { "France", "🇫🇷" }, { "França", "🇫🇷" },
-            { "UK", "🇬🇧" }, { "United Kingdom", "🇬🇧" }, { "Reino Unido", "🇬🇧" },
-            { "Belgium", "🇧🇪" }, { "Bélgica", "🇧🇪" },
-            { "Netherlands", "🇳🇱" }, { "Holanda", "🇳🇱" },
-            { "Germany", "🇩🇪" }, { "Alemanha", "🇩🇪" },
-            { "Austria", "🇦🇹" }, { "Áustria", "🇦🇹" },
-            { "Monaco", "🇲🇨" }, { "Mónaco", "🇲🇨" },
-            { "Hungary", "🇭🇺" }, { "Hungria", "🇭🇺" },
-            { "Brazil", "🇧🇷" }, { "Brasil", "🇧🇷" },
-            { "USA", "🇺🇸" }, { "United States", "🇺🇸" }, { "Estados Unidos", "🇺🇸" },
-            { "Mexico", "🇲🇽" }, { "México", "🇲🇽" },
-            { "Canada", "🇨🇦" }, { "Canadá", "🇨🇦" },
-            { "Japan", "🇯🇵" }, { "Japão", "🇯🇵" },
-            { "Singapore", "🇸🇬" }, { "Singapura", "🇸🇬" },
-            { "Australia", "🇦🇺" }, { "Austrália", "🇦🇺" },
-            { "UAE", "🇦🇪" }, { "United Arab Emirates", "🇦🇪" }, { "Emirados Árabes", "🇦🇪" },
-            { "Bahrain", "🇧🇭" }, { "Bahrein", "🇧🇭" },
-            { "Saudi Arabia", "🇸🇦" }, { "Arábia Saudita", "🇸🇦" },
-            { "Qatar", "🇶🇦" }, { "Catar", "🇶🇦" },
-            { "China", "🇨🇳" },
-            { "South Korea", "🇰🇷" }, { "Coreia do Sul", "🇰🇷" },
-            { "Russia", "🇷🇺" }, { "Rússia", "🇷🇺" },
-            { "Azerbaijan", "🇦🇿" }, { "Azerbaijão", "🇦🇿" },
-            { "Turkey", "🇹🇷" }, { "Turquia", "🇹🇷" }
-        };
-
-        private static string GetCountryFlag(string? country)
-        {
-            if (string.IsNullOrWhiteSpace(country))
-                return "";
-            
-            if (CountryFlags.TryGetValue(country.Trim(), out string? flag))
-                return flag + " ";
-            
-            return "";
-        }
-
-        // Parameterless constructor required by the Designer
         public CircuitForm() : this("Guest") { } 
 
         public CircuitForm(string role)
@@ -68,7 +24,7 @@ namespace ProjetoFBD
             InitializeComponent(); 
             this.userRole = role;
             
-            // UI Text in English
+            // UI Text 
             this.Text = "Circuits Management";
             this.Size = new Size(1200, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -79,7 +35,7 @@ namespace ProjetoFBD
 
         private void SetupCircuitsLayout()
         {
-            // Painel de ações (inferior)
+            // Painel de ações 
             pnlStaffActions = new Panel
             {
                 Dock = DockStyle.Bottom,
@@ -108,7 +64,6 @@ namespace ProjetoFBD
             dgvCircuitos.RowHeadersVisible = true;
             this.Controls.Add(dgvCircuitos);
 
-            // WinForms para Staff e Guest
 
             // Pesquisa (topo)
             pnlSearch = new Panel
@@ -284,22 +239,7 @@ private void LoadCircuitoData()
         // Filtro case-insensitive
         circuitoTable.CaseSensitive = false;
 
-        // Prefixa bandeira ao país
-        if (circuitoTable != null && circuitoTable.Columns.Contains("Pais"))
-        {
-            foreach (DataRow row in circuitoTable.Rows)
-            {
-                if (row["Pais"] != DBNull.Value)
-                {
-                    string country = row["Pais"]?.ToString() ?? string.Empty;
-                    string flag = GetCountryFlag(country);
-                    if (!string.IsNullOrEmpty(flag))
-                    {
-                        row["Pais"] = flag + country;
-                    }
-                }
-            }
-        }
+
 
         dgvCircuitos.DataSource = circuitoTable;
         // Fonte única da grelha (WinForms)
@@ -316,17 +256,38 @@ private void LoadCircuitoData()
         // Comandos de escrita só para Staff
         if (userRole == "Staff")
         {
-            SqlCommandBuilder commandBuilder = new SqlCommandBuilder(dataAdapter);
-
-            dataAdapter.InsertCommand = commandBuilder.GetInsertCommand(true);
-            dataAdapter.UpdateCommand = commandBuilder.GetUpdateCommand(true);
-            dataAdapter.DeleteCommand = commandBuilder.GetDeleteCommand(true);
-
-            if (dataAdapter.InsertCommand != null)
+            // InsertCommand
+            SqlCommand insertCmd = new SqlCommand("sp_InsertCircuit", new SqlConnection(DbConfig.ConnectionString));
+            insertCmd.CommandType = CommandType.StoredProcedure;
+            insertCmd.Parameters.Add("@Nome", SqlDbType.NVarChar, 100, "Nome");
+            insertCmd.Parameters.Add("@Cidade", SqlDbType.NVarChar, 100, "Cidade");
+            insertCmd.Parameters.Add("@Pais", SqlDbType.NVarChar, 100, "Pais");
+            insertCmd.Parameters.Add("@Comprimento_km", SqlDbType.Float, 0, "Comprimento_km");
+            insertCmd.Parameters.Add("@NumCurvas", SqlDbType.Int, 0, "NumCurvas");
+            SqlParameter outId = new SqlParameter("@ID_Circuito", SqlDbType.Int)
             {
-                // Garante retorno da PK
-                dataAdapter.InsertCommand.UpdatedRowSource = UpdateRowSource.Both;
-            }
+                Direction = ParameterDirection.Output
+            };
+            insertCmd.Parameters.Add(outId);
+            insertCmd.UpdatedRowSource = UpdateRowSource.Both;
+            dataAdapter.InsertCommand = insertCmd;
+
+            // UpdateCommand
+            SqlCommand updateCmd = new SqlCommand("sp_UpdateCircuit", new SqlConnection(DbConfig.ConnectionString));
+            updateCmd.CommandType = CommandType.StoredProcedure;
+            updateCmd.Parameters.Add("@ID_Circuito", SqlDbType.Int, 0, "ID_Circuito");
+            updateCmd.Parameters.Add("@Nome", SqlDbType.NVarChar, 100, "Nome");
+            updateCmd.Parameters.Add("@Cidade", SqlDbType.NVarChar, 100, "Cidade");
+            updateCmd.Parameters.Add("@Pais", SqlDbType.NVarChar, 100, "Pais");
+            updateCmd.Parameters.Add("@Comprimento_km", SqlDbType.Float, 0, "Comprimento_km");
+            updateCmd.Parameters.Add("@NumCurvas", SqlDbType.Int, 0, "NumCurvas");
+            dataAdapter.UpdateCommand = updateCmd;
+
+            // DeleteCommand
+            SqlCommand deleteCmd = new SqlCommand("sp_DeleteCircuit", new SqlConnection(DbConfig.ConnectionString));
+            deleteCmd.CommandType = CommandType.StoredProcedure;
+            deleteCmd.Parameters.Add("@ID_Circuito", SqlDbType.Int, 0, "ID_Circuito");
+            dataAdapter.DeleteCommand = deleteCmd;
         }
         }
                 catch (Exception ex)
@@ -335,23 +296,7 @@ private void LoadCircuitoData()
                 }
             }
 
-        private static string RemoveCountryFlag(string? countryWithFlag)
-        {
-            if (string.IsNullOrWhiteSpace(countryWithFlag))
-                return "";
-            
-            // Remove o emoji no início
-            string cleaned = countryWithFlag.Trim();
-            foreach (var flag in CountryFlags.Values)
-            {
-                if (cleaned.StartsWith(flag))
-                {
-                    cleaned = cleaned.Substring(flag.Length).Trim();
-                    break;
-                }
-            }
-            return cleaned;
-        }
+
 
         private void txtSearch_TextChanged(object? sender, EventArgs e)
         {
@@ -441,7 +386,7 @@ private void LoadCircuitoData()
                 }
             }
 
-            // Cabeçalhos em inglês e fonte para emojis
+            // Cabeçalhos 
             var nomeColumn = dgvCircuitos.Columns["Nome"]; if (nomeColumn != null) nomeColumn.HeaderText = "Name";
             var cidadeColumn = dgvCircuitos.Columns["Cidade"]; if (cidadeColumn != null) cidadeColumn.HeaderText = "City";
             var paisColumn = dgvCircuitos.Columns["Pais"]; 
@@ -477,17 +422,7 @@ private void btnSave_Click(object? sender, EventArgs e)
             {
                 dgvCircuitos.EndEdit(); 
                 
-                // Remove bandeiras antes de gravar
-                if (circuitoTable.Columns.Contains("Pais"))
-                {
-                    foreach (DataRow row in circuitoTable.Rows)
-                    {
-                        if (row["Pais"] != DBNull.Value && row["Pais"] != null)
-                        {
-                            row["Pais"] = RemoveCountryFlag(row["Pais"].ToString());
-                        }
-                    }
-                }
+
                 
                 // Associa comandos à ligação
                 if (dataAdapter.InsertCommand != null) dataAdapter.InsertCommand.Connection = connection;
