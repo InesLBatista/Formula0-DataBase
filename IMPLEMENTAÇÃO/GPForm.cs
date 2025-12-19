@@ -173,15 +173,17 @@ namespace ProjetoFBD
         {
             string connectionString = ProjetoFBD.DbConfig.ConnectionString;
             
-            // QUERY SIMPLIFICADA - apenas as 4 colunas que você quer
+            // Query com JOIN para trazer nome do circuito
             string query = @"
                 SELECT 
-                    NomeGP,
-                    DataCorrida,
-                    ID_Circuito,
-                    Ano_Temporada AS Season
-                FROM Grande_Prémio 
-                ORDER BY Ano_Temporada DESC, DataCorrida ASC";
+                    gp.NomeGP,
+                    gp.DataCorrida,
+                    c.Nome AS Circuit,
+                    gp.ID_Circuito,
+                    gp.Ano_Temporada AS Season
+                FROM Grande_Prémio gp
+                INNER JOIN Circuito c ON gp.ID_Circuito = c.ID_Circuito
+                ORDER BY gp.Ano_Temporada DESC, gp.DataCorrida ASC";
 
             try
             {
@@ -218,12 +220,17 @@ namespace ProjetoFBD
         {
             if (dgvGrandPrix == null) return;
             
-            // APENAS as 4 colunas que você quer
+            // Esconde ID_Circuito, mostra nome do circuito
+            if (dgvGrandPrix.Columns.Contains("ID_Circuito"))
+            {
+                dgvGrandPrix.Columns["ID_Circuito"]!.Visible = false;
+            }
+            
             var columnHeaders = new Dictionary<string, string>
             {
                 { "NomeGP", "Grand Prix Name" },
                 { "DataCorrida", "Race Date" },
-                { "ID_Circuito", "Circuit ID" },
+                { "Circuit", "Circuit" },
                 { "Season", "Season" }
             };
             
@@ -240,8 +247,8 @@ namespace ProjetoFBD
                         column.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                         column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                         
-                        // Apenas NomeGP é read-only (chave primária)
-                        if (mapping.Key == "NomeGP")
+                        // NomeGP e Circuit são read-only
+                        if (mapping.Key == "NomeGP" || mapping.Key == "Circuit")
                         {
                             column.ReadOnly = true;
                         }
@@ -253,26 +260,31 @@ namespace ProjetoFBD
                         }
                         
                         // Formatar números
-                        if (mapping.Key == "ID_Circuito" || mapping.Key == "Season")
+                        if (mapping.Key == "Season")
                         {
                             column.DefaultCellStyle.Format = "N0";
                         }
 
-                        // Ajustar tamanhos para preencher o ecrã e dar mais espaço ao NomeGP
+                        // Ajustar tamanhos para preencher o ecrã
                         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                         if (mapping.Key == "NomeGP")
                         {
-                            column.FillWeight = 250; // mais espaço para o nome
-                            column.MinimumWidth = 220;
+                            column.FillWeight = 200;
+                            column.MinimumWidth = 200;
                             if (column.DefaultCellStyle != null)
                                 column.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+                        }
+                        else if (mapping.Key == "Circuit")
+                        {
+                            column.FillWeight = 150;
+                            column.MinimumWidth = 140;
                         }
                         else if (mapping.Key == "DataCorrida")
                         {
                             column.FillWeight = 110;
                             column.MinimumWidth = 110;
                         }
-                        else // ID_Circuito e Season
+                        else // Season
                         {
                             column.FillWeight = 90;
                             column.MinimumWidth = 90;
@@ -709,7 +721,7 @@ namespace ProjetoFBD
             string escaped = term.Replace("'", "''");
             string filter =
                 $"Convert([NomeGP], 'System.String') LIKE '%{escaped}%' " +
-                $"OR Convert([ID_Circuito], 'System.String') LIKE '%{escaped}%' " +
+                $"OR Convert([Circuit], 'System.String') LIKE '%{escaped}%' " +
                 $"OR Convert([Season], 'System.String') LIKE '%{escaped}%' " +
                 $"OR Convert([DataCorrida], 'System.String') LIKE '%{escaped}%'";
 
