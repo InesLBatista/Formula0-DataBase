@@ -34,3 +34,4 @@ OUTER APPLY (
     GROUP BY e.Nome
     ORDER BY TotalPoints DESC, e.Nome ASC
 ) lt
+ORDER BY t.Ano DESC;

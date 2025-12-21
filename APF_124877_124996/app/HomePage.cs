@@ -30,6 +30,7 @@
             {
                 // CRÍTICO: InitializeComponent() deve ser a primeira chamada
                 InitializeComponent(); 
+                this.DoubleBuffered = true;
                 
                 // Initialize navigation stack
                 navigationStack = new Stack<Control>();
@@ -97,14 +98,19 @@
                             g.FillRectangle(brush, 0, 0, dimmedImage.Width, dimmedImage.Height);
                         }
                     }
-                    
-                    // Usa o PictureBox pbFundo para o background
+
+                    // Define a imagem como background do Form
+                    this.BackgroundImage = dimmedImage;
+                    this.BackgroundImageLayout = ImageLayout.Stretch;
+
+                    // Mantém o PictureBox como fallback (já está dock-fill)
                     pbFundo.Image = dimmedImage;
                     pbFundo.SendToBack();
                 }
                 else
                 {
                     // Se nada funcionar, define uma cor de fundo sólida
+                    this.BackgroundImage = null;
                     this.BackColor = Color.FromArgb(20, 20, 20); 
                 }
             }

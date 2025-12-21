@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="logo.png" />
+    <Content Include="background.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
