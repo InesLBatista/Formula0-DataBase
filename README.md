@@ -15,24 +15,16 @@ Principais características e decisões de projeto:
 - Utilização de transações para operações de escrita críticas (registo de resultados, aplicação de penalizações) para manter a integridade dos dados.
 
 ## Demo
-Veja a demonstração em vídeo abaixo. Caso o repositório esteja a ser visualizado localmente, o ficheiro de vídeo encontra-se em `APF_124877_124996/Demo.mp4`.
-
-<!-- Se o visualizador suportar HTML5 local, o player abaixo tentará reproduzir o ficheiro -->
-<video controls width="720">
-	<source src="APF_124877_124996/Demo.mp4" type="video/mp4">
-	O seu browser não suporta o elemento <code>video</code>. Abra o ficheiro [APF_124877_124996/Demo.mp4](APF_124877_124996/Demo.mp4) manualmente.
-</video>
-
-## Diagramas
-Os diagramas finais (DER e ER) estão disponíveis na pasta do trabalho `APF_124877_124996´
-
-<!-- Embeds: muitos visualizadores Markdown locais exibem PDFs quando embutidos; em plataformas que não suportem, os links abaixo funcionam como fallback. -->
-
-<h3>DER (Diagrama Entidade-Relacionamento)</h3>
-<embed src="APF_124877_124996/der.pdf" type="application/pdf" width="100%" height="720px" />
+Caso o repositório esteja a ser visualizado localmente, o ficheiro de vídeo encontra-se em `APF_124877_124996/Demo.mp4`.
 
 
-<h3>ER (Esquema Relacional)</h3>
-<embed src="APF_124877_124996/er.pdf" type="application/pdf" width="100%" height="720px" />
+
+<p align="center">
+	<a href="APF_124877_124996/Demo.mp4">
+		<img src="APF_124877_124996/demo.gif" alt="Demo GIF" width="720" />
+	</a>
+</p>
+
+
 
 
