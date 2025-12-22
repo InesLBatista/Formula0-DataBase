@@ -1,0 +1,250 @@
+--- DDL_INICIAL.sql
++++ DDL_FINAL.sql
+@@ -1,6 +1,16 @@
++-- ADIÇÃO: Bloco de DROP TABLE para garantir limpeza de dados antes da criação das tabelas
++-- Racional: Permite re-executar o script de forma idempotente sem erros de tabelas já existentes
++IF OBJECT_ID('Pitstop', 'U') IS NOT NULL DROP TABLE Pitstop;
++IF OBJECT_ID('Penalizações', 'U') IS NOT NULL DROP TABLE Penalizações;
++IF OBJECT_ID('Resultados', 'U') IS NOT NULL DROP TABLE Resultados;
++IF OBJECT_ID('Sessões', 'U') IS NOT NULL DROP TABLE Sessões;
++IF OBJECT_ID('Grande_Prémio', 'U') IS NOT NULL DROP TABLE Grande_Prémio;
++IF OBJECT_ID('Piloto', 'U') IS NOT NULL DROP TABLE Piloto;
++IF OBJECT_ID('Contrato', 'U') IS NOT NULL DROP TABLE Contrato;
++IF OBJECT_ID('Membros_da_Equipa', 'U') IS NOT NULL DROP TABLE Membros_da_Equipa;
++IF OBJECT_ID('Equipa', 'U') IS NOT NULL DROP TABLE Equipa;
++IF OBJECT_ID('Temporada', 'U') IS NOT NULL DROP TABLE Temporada;
+ IF OBJECT_ID('Circuito', 'U') IS NOT NULL DROP TABLE Circuito;
+ 
+ CREATE TABLE Circuito (
+ 	ID_Circuito INT PRIMARY KEY IDENTITY(1,1),
+ 	Nome NVARCHAR(100) NOT NULL,
+ 	Cidade NVARCHAR(100),
+ 	Pais NVARCHAR(100),
+ 	Comprimento_km DECIMAL(10, 3) NOT NULL,
+-	NumCurvas INT
+-	ID_Circuito INT PRIMARY KEY IDENTITY(1,1),
+-	Nome NVARCHAR(100) NOT NULL,
+-	Cidade NVARCHAR(100),
+-	Pais NVARCHAR(100),
+-	Comprimento_km DECIMAL(10, 3) NOT NULL,
+-	NumCurvas INT
++	NumCurvas INT
+ );
+ 
+ CREATE TABLE Equipa (
+ 	ID_Equipa INT PRIMARY KEY IDENTITY(1,1),
+ 	Nome NVARCHAR(100) NOT NULL,
+ 	Nacionalidade NVARCHAR(100) NOT NULL,
+ 	Base NVARCHAR(100) NOT NULL,
+ 	ChefeEquipa NVARCHAR(100) NOT NULL,
+-	AnoEstreia INT NOT NULL,
+-	ModeloChassis NVARCHAR(100) NOT NULL,
+-	Power_Unit NVARCHAR(100) NOT NULL,
+-	PilotosReserva INT
+-	ID_Equipa INT PRIMARY KEY IDENTITY(1,1),
+-	Nome NVARCHAR(100) NOT NULL,
+-	Nacionalidade NVARCHAR(100) NOT NULL,
+-	Base NVARCHAR(100) NOT NULL,
+-	ChefeEquipa NVARCHAR(100) NOT NULL,
++	-- CAMPO ADICIONADO/CORRIGIDO: ChefeTécnico
++	-- Racional: Necessário registar a identidade do chefe técnico separadamente do chefe de equipa,
++	-- pois são funções distintas dentro da hierarquia de gestão da equipa de Fórmula 1
+ 	ChefeTécnico NVARCHAR(100) NOT NULL,
+ 	AnoEstreia INT NOT NULL,
+ 	ModeloChassis NVARCHAR(100) NOT NULL,
+ 	Power_Unit NVARCHAR(100) NOT NULL,
+ 	PilotosReserva INT
+ );
+ 
+ CREATE TABLE Membros_da_Equipa (
+ 	ID_Membro INT PRIMARY KEY IDENTITY(1,1),
+ 	Nome NVARCHAR(100) NOT NULL,
+ 	Nacionalidade NVARCHAR(100) NOT NULL,
+ 	DataNascimento DATE NOT NULL,
+ 	Género CHAR(1) NOT NULL,
+ 	Função NVARCHAR(100) NOT NULL,
+-	ID_Equipa INT,
++	-- CORRIGIDO: ID_Equipa agora é NOT NULL
++	-- Racional: Todo membro da equipa deve obrigatoriamente estar associado a uma equipa.
++	-- Deixar como nullable criar registos órfãos e viola integridade referencial da base de dados
++	ID_Equipa INT NOT NULL,
+ 	CONSTRAINT FK_Membros_Equipa FOREIGN KEY (ID_Equipa) REFERENCES Equipa(ID_Equipa)
+-	ID_Membro INT PRIMARY KEY IDENTITY(1,1),
+-	Nome NVARCHAR(100) NOT NULL,
+-	Nacionalidade NVARCHAR(100) NOT NULL,
+-	DataNascimento DATE NOT NULL,
+-	Género CHAR(1) NOT NULL,
+-	Função NVARCHAR(100) NOT NULL,
+-	-- CORRIGIDO: ID_Equipa agora é NOT NULL
+-	ID_Equipa INT NOT NULL,
+-	CONSTRAINT FK_Membros_Equipa FOREIGN KEY (ID_Equipa) REFERENCES Equipa(ID_Equipa)
+ );
+ 
+ CREATE TABLE Contrato (
+ 	ID_Contrato INT PRIMARY KEY IDENTITY(1,1),
+ 	AnoInicio INT NOT NULL,
+ 	AnoFim INT NOT NULL,
+ 	Função NVARCHAR(100) NOT NULL,
+ 	Salário DECIMAL(20, 4),
+ 	Género CHAR(1),
+ 	ID_Membro INT NOT NULL,
+ 	CONSTRAINT FK_Contrato_Membro FOREIGN KEY (ID_Membro) REFERENCES Membros_da_Equipa(ID_Membro)
+-	ID_Contrato INT PRIMARY KEY IDENTITY(1,1),
+-	AnoInicio INT NOT NULL,
+-	AnoFim INT NOT NULL,
+-	Função NVARCHAR(100) NOT NULL,
+-	Salário DECIMAL(20, 4),
+-	Género CHAR(1),
+-	ID_Membro INT NOT NULL,
+-	CONSTRAINT FK_Contrato_Membro FOREIGN KEY (ID_Membro) REFERENCES Membros_da_Equipa(ID_Membro)
+ );
+ 
+ CREATE TABLE Piloto (
+ 	ID_Piloto INT PRIMARY KEY IDENTITY(1,1),
+ 	NumeroPermanente INT UNIQUE NOT NULL,
+ 	Abreviação CHAR(3) UNIQUE NOT NULL,
+-	ID_Equipa INT,
++	-- CORRIGIDO: ID_Equipa agora é NOT NULL
++	-- Racional: Todo piloto deve obrigatoriamente estar associado a uma equipa no momento do registo.
++	-- Deixar como nullable permitiria pilotos sem equipa, violando a lógica de negócio
++	ID_Equipa INT NOT NULL,
+ 	ID_Membro INT UNIQUE,
+ 	CONSTRAINT FK_Piloto_Equipa FOREIGN KEY (ID_Equipa) REFERENCES Equipa(ID_Equipa),
+ 	CONSTRAINT FK_Piloto_Membro FOREIGN KEY (ID_Membro) REFERENCES Membros_da_Equipa(ID_Membro)
+-	ID_Piloto INT PRIMARY KEY IDENTITY(1,1),
+-	NumeroPermanente INT UNIQUE NOT NULL,
+-	Abreviação CHAR(3) UNIQUE NOT NULL,
+-	-- CORRIGIDO: ID_Equipa agora é NOT NULL
+-	ID_Equipa INT NOT NULL,
+-	ID_Membro INT UNIQUE,
+-	CONSTRAINT FK_Piloto_Equipa FOREIGN KEY (ID_Equipa) REFERENCES Equipa(ID_Equipa),
+-	CONSTRAINT FK_Piloto_Membro FOREIGN KEY (ID_Membro) REFERENCES Membros_da_Equipa(ID_Membro)
+ );
+ 
+ CREATE TABLE Temporada (
+ 	Ano INT PRIMARY KEY,
+ 	NumCorridas INT,
+ 	PontosPiloto INT,
+ 	PontosEquipa INT,
+ 	PosiçãoPiloto INT,
+ 	PosiçãoEquipa INT
+-	Ano INT PRIMARY KEY,
+-	NumCorridas INT,
+-	PontosPiloto INT,
+-	PontosEquipa INT,
+-	PosiçãoPiloto INT,
+-	PosiçãoEquipa INT
+ );
+ 
+ CREATE TABLE Grande_Prémio (
+ 	NomeGP NVARCHAR(100) PRIMARY KEY,
+ 	DataCorrida DATE NOT NULL,
+ 	NumeroVoltas INT,
+ 	ID_Circuito INT NOT NULL,
+ 	Ano_Temporada INT NOT NULL,
+ 	CONSTRAINT FK_GP_Circuito FOREIGN KEY (ID_Circuito) REFERENCES Circuito(ID_Circuito),
+ 	CONSTRAINT FK_GP_Temporada FOREIGN KEY (Ano_Temporada) REFERENCES Temporada(Ano)
+-	NomeGP NVARCHAR(100) PRIMARY KEY,
+-	DataCorrida DATE NOT NULL,
+-	NumeroVoltas INT,
+-	ID_Circuito INT NOT NULL,
+-	Ano_Temporada INT NOT NULL,
+-	CONSTRAINT FK_GP_Circuito FOREIGN KEY (ID_Circuito) REFERENCES Circuito(ID_Circuito),
+-	CONSTRAINT FK_GP_Temporada FOREIGN KEY (Ano_Temporada) REFERENCES Temporada(Ano)
+ );
+ 
++-- CORRIGIDO: PRIMARY KEY composta (NomeGP, NomeSessão) permite mesmos nomes em GPs diferentes
++-- Racional: Uma sessão pode ter o mesmo nome em diferentes Grandes Prémios (ex: "Qualificação").
++-- A chave primária deve incluir NomeGP para garantir unicidade na combinação (NomeGP, NomeSessão)
+ CREATE TABLE Sessões (
+ 	NomeSessão NVARCHAR(100),
+ 	Estado NVARCHAR(50),
+ 	CondiçõesPista NVARCHAR(50),
+ 	NomeGP NVARCHAR(100) NOT NULL,
+-	CONSTRAINT FK_Sessao_GP FOREIGN KEY (NomeGP) REFERENCES Grande_Prémio(NomeGP)
+-	NomeSessão NVARCHAR(100) PRIMARY KEY,
+-	Estado NVARCHAR(50),
+-	CondiçõesPista NVARCHAR(50),
+-	NomeGP NVARCHAR(100) NOT NULL,
++	CONSTRAINT PK_Sessoes PRIMARY KEY (NomeGP, NomeSessão),
+ 	CONSTRAINT FK_Sessao_GP FOREIGN KEY (NomeGP) REFERENCES Grande_Prémio(NomeGP)
+ );
+ 
++-- CORRIGIDO: Adicionado NomeGP e FK composta
++-- Racional: Necessário manter rastreabilidade completa do Grande Prémio para cada resultado.
++-- A FK agora referencia a PK composta (NomeGP, NomeSessão) da tabela Sessões para manter integridade referencial
+ CREATE TABLE Resultados (
+ 	ID_Resultado INT PRIMARY KEY IDENTITY(1,1),
+ 	PosiçãoGrid INT,
+-	TempoFinal TIME,  -- TIME extracts the time part from a given time
++	TempoFinal TIME,
+ 	PosiçãoFinal INT,
+ 	Status NVARCHAR(50),
+ 	Pontos DECIMAL(5, 2),
+ 	NomeSessão NVARCHAR(100) NOT NULL,
++	NomeGP NVARCHAR(100) NOT NULL,
+ 	ID_Piloto INT NOT NULL,
+-	CONSTRAINT FK_Resultado_Sessao FOREIGN KEY (NomeSessão) REFERENCES Sessões(NomeSessão),
++	CONSTRAINT FK_Resultado_Sessao FOREIGN KEY (NomeGP, NomeSessão) REFERENCES Sessões(NomeGP, NomeSessão),
+ 	CONSTRAINT FK_Resultado_Piloto FOREIGN KEY (ID_Piloto) REFERENCES Piloto(ID_Piloto)
+-	ID_Resultado INT PRIMARY KEY IDENTITY(1,1),
+-	PosiçãoGrid INT,
+-	TempoFinal TIME,  
+-	PosiçãoFinal INT,
+-	Status NVARCHAR(50),
+-	Pontos DECIMAL(5, 2),
+-	NomeSessão NVARCHAR(100) NOT NULL,
+-	ID_Piloto INT NOT NULL,
+-	CONSTRAINT FK_Resultado_Sessao FOREIGN KEY (NomeSessão) REFERENCES Sessões(NomeSessão),
+-	CONSTRAINT FK_Resultado_Piloto FOREIGN KEY (ID_Piloto) REFERENCES Piloto(ID_Piloto)
+ );
+ 
++-- Adicionado NomeGP e FK composta
++-- Racional: Mesmo que em Resultados, a penalização deve estar claramente associada ao Grande Prémio específico.
++-- Permite queries mais eficientes e manutenção de integridade referencial com a FK composta
+ CREATE TABLE Penalizações (
+ 	ID_Penalização INT PRIMARY KEY IDENTITY(1,1),
+ 	TipoPenalização NVARCHAR(100) NOT NULL,
+ 	Motivo NVARCHAR(255),
+ 	NomeSessão NVARCHAR(100) NOT NULL,
++	NomeGP NVARCHAR(100) NOT NULL,
+ 	ID_Piloto INT NOT NULL,
+ 	ID_Resultados INT,
+-	CONSTRAINT FK_Penalizacao_Sessao FOREIGN KEY (NomeSessão) REFERENCES Sessões(NomeSessão),
++	CONSTRAINT FK_Penalizacao_Sessao FOREIGN KEY (NomeGP, NomeSessão) REFERENCES Sessões(NomeGP, NomeSessão),
+ 	CONSTRAINT FK_Penalizacao_Piloto FOREIGN KEY (ID_Piloto) REFERENCES Piloto(ID_Piloto),
+ 	CONSTRAINT FK_Penalizacao_Resultado FOREIGN KEY (ID_Resultados) REFERENCES Resultados(ID_Resultado)
+-	ID_Penalização INT PRIMARY KEY IDENTITY(1,1),
+-	TipoPenalização NVARCHAR(100) NOT NULL,
+-	Motivo NVARCHAR(255),
+-	NomeSessão NVARCHAR(100) NOT NULL,
+-	ID_Piloto INT NOT NULL,
+-	ID_Resultados INT, 
+-	CONSTRAINT FK_Penalizacao_Sessao FOREIGN KEY (NomeSessão) REFERENCES Sessões(NomeSessão),
+-	CONSTRAINT FK_Penalizacao_Piloto FOREIGN KEY (ID_Piloto) REFERENCES Piloto(ID_Piloto),
+-	CONSTRAINT FK_Penalizacao_Resultado FOREIGN KEY (ID_Resultados) REFERENCES Resultados(ID_Resultado)
+ );
+ 
++--  Adicionado NomeGP e FK composta
++-- Racional: Rastreabilidade completa do contexto (GP) para análise de estratégias de pit stops.
++-- A FK composta garante que o pit stop só pode referenciar uma sessão válida do Grande Prémio específico
+ CREATE TABLE Pitstop (
+ 	ID_Pitstop INT PRIMARY KEY IDENTITY(1,1),
+ 	NumeroVolta INT NOT NULL,
+ 	DuraçãoParagem TIME,
+ 	DuraçãoPitlane TIME,
+ 	NomeSessão NVARCHAR(100) NOT NULL,
++	NomeGP NVARCHAR(100) NOT NULL,
+ 	ID_Piloto INT NOT NULL,
+-	CONSTRAINT FK_Pitstop_Sessao FOREIGN KEY (NomeSessão) REFERENCES Sessões(NomeSessão),
++	CONSTRAINT FK_Pitstop_Sessao FOREIGN KEY (NomeGP, NomeSessão) REFERENCES Sessões(NomeGP, NomeSessão),
+ 	CONSTRAINT FK_Pitstop_Piloto FOREIGN KEY (ID_Piloto) REFERENCES Piloto(ID_Piloto)
+-	ID_Pitstop INT PRIMARY KEY IDENTITY(1,1),
+-	NumeroVolta INT NOT NULL,
+-	DuraçãoParagem TIME, 
+-	DuraçãoPitlane TIME,
+-	NomeSessão NVARCHAR(100) NOT NULL,
+-	ID_Piloto INT NOT NULL,
+-	CONSTRAINT FK_Pitstop_Sessao FOREIGN KEY (NomeSessão) REFERENCES Sessões(NomeSessão),
+-	CONSTRAINT FK_Pitstop_Piloto FOREIGN KEY (ID_Piloto) REFERENCES Piloto(ID_Piloto)
+ );
