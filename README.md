@@ -1,7 +1,10 @@
 # Fórmula 0
-# Autores
+## Autores
 - Inês Batista, 124877
 - Maria Quinteiro, 124996
+
+## Demo
+![Image](https://github.com/user-attachments/assets/8f7729a5-936c-4154-897a-454c814f968a)
 
 ## Descrição do Trabalho
 Este projeto consiste na conceção e implementação de uma base de dados relacional completa para a gestão de um campeonato de corridas automóveis inspirado na Fórmula 1. O objetivo principal foi modelar, estruturar e validar um esquema que permita suportar todas as entidades e regras necessárias para registar temporadas, corridas, sessões (treinos, qualificação, corrida), circuitos, equipas, pilotos, membros do staff, contratos, penalizações, pitstops e resultados detalhados por sessão.
