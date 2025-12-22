@@ -251,103 +251,95 @@ IF NOT EXISTS (SELECT 1 FROM Temporada WHERE Ano = 2025)
 SELECT * FROM Temporada;
 
 -- 7. Inserir Grande Prémio (depende de Circuito e Temporada)
-INSERT INTO Grande_Prémio (NomeGP, DataCorrida, NumeroVoltas, ID_Circuito, Ano_Temporada)
+INSERT INTO Grande_Prémio (NomeGP, DataCorrida, ID_Circuito, Ano_Temporada)
 VALUES 
 -- Australian Grand Prix
-('Australian Grand Prix 2024', '2024-03-24', 58, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Albert Park Circuit'), 2024),
-('Australian Grand Prix 2025', '2025-03-16', 58, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Albert Park Circuit'), 2025),
+('Australian Grand Prix 2024', '2024-03-24', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Albert Park Circuit'), 2024),
+('Australian Grand Prix 2025', '2025-03-16', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Albert Park Circuit'), 2025),
 
 -- Bahrain Grand Prix
-('Bahrain Grand Prix 2024', '2024-03-02', 57, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Bahrain International Circuit'), 2024),
-('Bahrain Grand Prix 2025', '2025-04-13', 57, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Bahrain International Circuit'), 2025),
+('Bahrain Grand Prix 2024', '2024-03-02', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Bahrain International Circuit'), 2024),
+('Bahrain Grand Prix 2025', '2025-04-13', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Bahrain International Circuit'), 2025),
 
 -- Saudi Arabian Grand Prix
-('Saudi Arabian Grand Prix 2024', '2024-03-09', 50, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Jeddah Street Circuit'), 2024),
-('Saudi Arabian Grand Prix 2025', '2025-04-20', 50, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Jeddah Street Circuit'), 2025),
-
+('Saudi Arabian Grand Prix 2024', '2024-03-09', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Jeddah Street Circuit'), 2024),
+('Saudi Arabian Grand Prix 2025', '2025-04-20', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Jeddah Street Circuit'), 2025),
 -- Chinese Grand Prix
-('Chinese Grand Prix 2024', '2024-04-21', 56, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Shanghai International Circuit'), 2024),
-('Chinese Grand Prix 2025', '2025-03-23', 56, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Shanghai International Circuit'), 2025),
+('Chinese Grand Prix 2024', '2024-04-21', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Shanghai International Circuit'), 2024),
+('Chinese Grand Prix 2025', '2025-03-23', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Shanghai International Circuit'), 2025),
 
 -- Japanese Grand Prix
-('Japanese Grand Prix 2024', '2024-04-07', 53, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Suzuka International Racing Course'), 2024),
-('Japanese Grand Prix 2025', '2025-04-06', 53, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Suzuka International Racing Course'), 2025),
+('Japanese Grand Prix 2024', '2024-04-07', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Suzuka International Racing Course'), 2024),
+('Japanese Grand Prix 2025', '2025-04-06', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Suzuka International Racing Course'), 2025),
 
 -- Miami Grand Prix
-('Miami Grand Prix 2024', '2024-05-05', 57, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Miami International Autodrome'), 2024),
-('Miami Grand Prix 2025', '2025-05-04', 57, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Miami International Autodrome'), 2025),
-
+('Miami Grand Prix 2024', '2024-05-05', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Miami International Autodrome'), 2024),
+('Miami Grand Prix 2025', '2025-05-04', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Miami International Autodrome'), 2025),
 -- Emilia Romagna Grand Prix
-('Emilia Romagna Grand Prix 2024', '2024-05-19', 63, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Internazionale Enzo e Dino Ferrari'), 2024),
-('Emilia Romagna Grand Prix 2025', '2025-05-18', 63, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Internazionale Enzo e Dino Ferrari'), 2025),
+('Emilia Romagna Grand Prix 2024', '2024-05-19', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Internazionale Enzo e Dino Ferrari'), 2024),
+('Emilia Romagna Grand Prix 2025', '2025-05-18', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Internazionale Enzo e Dino Ferrari'), 2025),
 
 -- Monaco Grand Prix
-('Monaco Grand Prix 2024', '2024-05-26', 78, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Monaco'), 2024),
-('Monaco Grand Prix 2025', '2025-05-25', 78, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Monaco'), 2025),
+('Monaco Grand Prix 2024', '2024-05-26', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Monaco'), 2024),
+('Monaco Grand Prix 2025', '2025-05-25', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Monaco'), 2025),
 
 -- Spanish Grand Prix
-('Spanish Grand Prix 2024', '2024-06-23', 66, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Barcelona-Catalunya'), 2024),
-('Spanish Grand Prix 2025', '2025-06-01', 66, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Barcelona-Catalunya'), 2025),
-
+('Spanish Grand Prix 2024', '2024-06-23', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Barcelona-Catalunya'), 2024),
+('Spanish Grand Prix 2025', '2025-06-01', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Barcelona-Catalunya'), 2025),
 -- Canadian Grand Prix
-('Canadian Grand Prix 2024', '2024-06-09', 70, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Gilles Villeneuve'), 2024),
-('Canadian Grand Prix 2025', '2025-06-15', 70, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Gilles Villeneuve'), 2025),
+('Canadian Grand Prix 2024', '2024-06-09', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Gilles Villeneuve'), 2024),
+('Canadian Grand Prix 2025', '2025-06-15', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Gilles Villeneuve'), 2025),
 
 -- Austrian Grand Prix
-('Austrian Grand Prix 2024', '2024-06-30', 71, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Red Bull Ring'), 2024),
-('Austrian Grand Prix 2025', '2025-06-29', 71, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Red Bull Ring'), 2025),
+('Austrian Grand Prix 2024', '2024-06-30', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Red Bull Ring'), 2024),
+('Austrian Grand Prix 2025', '2025-06-29', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Red Bull Ring'), 2025),
 
 -- British Grand Prix
-('British Grand Prix 2024', '2024-07-07', 52, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Silverstone Circuit'), 2024),
-('British Grand Prix 2025', '2025-07-06', 52, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Silverstone Circuit'), 2025),
-
+('British Grand Prix 2024', '2024-07-07', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Silverstone Circuit'), 2024),
+('British Grand Prix 2025', '2025-07-06', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Silverstone Circuit'), 2025),
 -- Hungarian Grand Prix
-('Hungarian Grand Prix 2024', '2024-07-21', 70, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Hungaroring'), 2024),
-('Hungarian Grand Prix 2025', '2025-08-03', 70, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Hungaroring'), 2025),
+('Hungarian Grand Prix 2024', '2024-07-21', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Hungaroring'), 2024),
+('Hungarian Grand Prix 2025', '2025-08-03', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Hungaroring'), 2025),
 
 -- Belgian Grand Prix
-('Belgian Grand Prix 2024', '2024-07-28', 44, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Spa-Francorchamps'), 2024),
-('Belgian Grand Prix 2025', '2025-07-27', 44, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Spa-Francorchamps'), 2025),
-
+('Belgian Grand Prix 2024', '2024-07-28', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Spa-Francorchamps'), 2024),
+('Belgian Grand Prix 2025', '2025-07-27', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit de Spa-Francorchamps'), 2025),
 -- Dutch Grand Prix
-('Dutch Grand Prix 2024', '2024-08-25', 72, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Zandvoort'), 2024),
-('Dutch Grand Prix 2025', '2025-08-31', 72, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Zandvoort'), 2025),
+('Dutch Grand Prix 2024', '2024-08-25', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Zandvoort'), 2024),
+('Dutch Grand Prix 2025', '2025-08-31', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit Zandvoort'), 2025),
 
 -- Italian Grand Prix
-('Italian Grand Prix 2024', '2024-09-01', 53, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Nazionale di Monza'), 2024),
-('Italian Grand Prix 2025', '2025-09-07', 53, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Nazionale di Monza'), 2025),
-
+('Italian Grand Prix 2024', '2024-09-01', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Nazionale di Monza'), 2024),
+('Italian Grand Prix 2025', '2025-09-07', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo Nazionale di Monza'), 2025),
 -- Azerbaijan Grand Prix
-('Azerbaijan Grand Prix 2024', '2024-09-15', 51, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Baku City Circuit'), 2024),
-('Azerbaijan Grand Prix 2025', '2025-09-21', 51, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Baku City Circuit'), 2025),
+('Azerbaijan Grand Prix 2024', '2024-09-15', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Baku City Circuit'), 2024),
+('Azerbaijan Grand Prix 2025', '2025-09-21', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Baku City Circuit'), 2025),
 
 -- Singapore Grand Prix
-('Singapore Grand Prix 2024', '2024-09-22', 62, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Marina Bay Street Circuit'), 2024),
-('Singapore Grand Prix 2025', '2025-10-05', 62, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Marina Bay Street Circuit'), 2025),
+('Singapore Grand Prix 2024', '2024-09-22', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Marina Bay Street Circuit'), 2024),
+('Singapore Grand Prix 2025', '2025-10-05', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Marina Bay Street Circuit'), 2025),
 
 -- United States Grand Prix
-('United States Grand Prix 2024', '2024-10-20', 56, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit of the Americas'), 2024),
-('United States Grand Prix 2025', '2025-10-19', 56, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit of the Americas'), 2025),
-
+('United States Grand Prix 2024', '2024-10-20', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit of the Americas'), 2024),
+('United States Grand Prix 2025', '2025-10-19', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Circuit of the Americas'), 2025),
 -- Mexico City Grand Prix
-('Mexico City Grand Prix 2024', '2024-10-27', 71, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autódromo Hermanos Rodríguez'), 2024),
-('Mexico City Grand Prix 2025', '2025-10-26', 71, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autódromo Hermanos Rodríguez'), 2025),
+('Mexico City Grand Prix 2024', '2024-10-27', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autódromo Hermanos Rodríguez'), 2024),
+('Mexico City Grand Prix 2025', '2025-10-26', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autódromo Hermanos Rodríguez'), 2025),
 
 -- São Paulo Grand Prix
-('São Paulo Grand Prix 2024', '2024-11-03', 71, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo José Carlos Pace'), 2024),
-('São Paulo Grand Prix 2025', '2025-11-09', 71, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo José Carlos Pace'), 2025),
-
+('São Paulo Grand Prix 2024', '2024-11-03', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo José Carlos Pace'), 2024),
+('São Paulo Grand Prix 2025', '2025-11-09', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Autodromo José Carlos Pace'), 2025),
 -- Las Vegas Grand Prix
-('Las Vegas Grand Prix 2024', '2024-11-23', 50, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Las Vegas Street Circuit'), 2024),
-('Las Vegas Grand Prix 2025', '2025-11-22', 50, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Las Vegas Street Circuit'), 2025),
+('Las Vegas Grand Prix 2024', '2024-11-23', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Las Vegas Street Circuit'), 2024),
+('Las Vegas Grand Prix 2025', '2025-11-22', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Las Vegas Street Circuit'), 2025),
 
 -- Qatar Grand Prix
-('Qatar Grand Prix 2024', '2024-12-01', 57, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Lusail International Circuit'), 2024),
-('Qatar Grand Prix 2025', '2025-11-30', 57, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Lusail International Circuit'), 2025),
+('Qatar Grand Prix 2024', '2024-12-01', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Lusail International Circuit'), 2024),
+('Qatar Grand Prix 2025', '2025-11-30', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Lusail International Circuit'), 2025),
 
 -- Abu Dhabi Grand Prix
-('Abu Dhabi Grand Prix 2024', '2024-12-08', 58, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Yas Marina Circuit'), 2024),
-('Abu Dhabi Grand Prix 2025', '2025-12-07', 58, (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Yas Marina Circuit'), 2025);
+('Abu Dhabi Grand Prix 2024', '2024-12-08', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Yas Marina Circuit'), 2024),
+('Abu Dhabi Grand Prix 2025', '2025-12-07', (SELECT ID_Circuito FROM Circuito WHERE Nome = 'Yas Marina Circuit'), 2025);
 
 -- 8. Inserir Sessões (depende de Grande_Prémio)
 INSERT INTO Sessões (NomeSessão, NomeGP, Estado, CondiçõesPista)

@@ -25,7 +25,6 @@ CREATE TABLE Equipa (
 	Nacionalidade NVARCHAR(100) NOT NULL,
 	Base NVARCHAR(100) NOT NULL,
 	ChefeEquipa NVARCHAR(100) NOT NULL,
-	-- CAMPO ADICIONADO/CORRIGIDO: ChefeTécnico
 	ChefeTécnico NVARCHAR(100) NOT NULL,
 	AnoEstreia INT NOT NULL,
 	ModeloChassis NVARCHAR(100) NOT NULL,
@@ -77,14 +76,12 @@ CREATE TABLE Temporada (
 CREATE TABLE Grande_Prémio (
 	NomeGP NVARCHAR(100) PRIMARY KEY,
 	DataCorrida DATE NOT NULL,
-	NumeroVoltas INT,
 	ID_Circuito INT NOT NULL,
 	Ano_Temporada INT NOT NULL,
 	CONSTRAINT FK_GP_Circuito FOREIGN KEY (ID_Circuito) REFERENCES Circuito(ID_Circuito),
 	CONSTRAINT FK_GP_Temporada FOREIGN KEY (Ano_Temporada) REFERENCES Temporada(Ano)
 );
 
--- CORRIGIDO: PRIMARY KEY composta (NomeGP, NomeSessão) permite mesmos nomes em GPs diferentes
 CREATE TABLE Sessões (
 	NomeSessão NVARCHAR(100),
 	Estado NVARCHAR(50),
